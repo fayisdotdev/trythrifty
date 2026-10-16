@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tryclothes | Modern Streetwear & High Fashion</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        warm: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            400: '#f59e0b',
+                            500: '#d97706',
+                            600: '#b45309',
+                            accent: '#f59e0b',
+                            gold: '#fbbf24'
+                        },
+                        dark: {
+                            base: '#0a0a0c',
+                            card: '#121216',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    animation: {
+                        'glow-pulse': 'glowPulse 3s infinite ease-in-out',
+                        'float': 'float 5s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        glowPulse: {
+                            '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                            '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Vanilla Tilt for 3D depth cards -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #08080a;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-header {
+            background: rgba(10, 10, 12, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .glass-card {
+            background: rgba(18, 18, 22, 0.55);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(245, 158, 11, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #08080a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Image Smooth Zoom */
+        .img-zoom {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .group:hover .img-zoom {
+            transform: scale(1.08);
+        }
+
+        /* Particle / Pulse Glow */
+        .warm-glow {
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, rgba(0,0,0,0) 70%);
+        }
+    </style>
+</head>
+<body class="selection:bg-warm-500 selection:text-black">
+
+    <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-24 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- FIXED NAVIGATION HEADER -->
+    <header class="fixed top-0 left-0 w-full z-40 px-3 sm:px-8 py-3 transition-all duration-300" id="main-header">
+        <nav class="max-w-7xl mx-auto h-16 glass-header rounded-2xl px-4 sm:px-6 flex items-center justify-between shadow-2xl">
+            
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-2.5 group">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-warm-600 via-warm-500 to-amber-300 flex items-center justify-center font-black text-black text-xl shadow-lg shadow-warm-500/20 group-hover:scale-105 transition-transform">
+                    t
+                </div>
+                <span class="text-xl sm:text-2xl font-black tracking-tight text-white group-hover:text-warm-400 transition-colors">
+                    tryclothes<span class="text-warm-500">.</span>
+                </span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#hero" class="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-warm-400 transition-colors">Home</a>
+                <a href="#shop" class="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-warm-400 transition-colors">Collection</a>
+                <a href="#studio" class="text-xs font-bold uppercase tracking-wider text-warm-400 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warm-500/10 border border-warm-500/20 hover:bg-warm-500/20 transition-all">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    Fitting Studio
+                </a>
+                <a href="#about" class="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-warm-400 transition-colors">Brand Story</a>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-3">
+                <!-- Search Button -->
+                <button id="search-trigger" class="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-zinc-800/60 transition-colors" title="Search catalog">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Wishlist Indicator -->
+                <button id="wishlist-trigger" class="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-zinc-800/60 transition-colors relative" title="Wishlist">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                    <span id="wishlist-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">0</span>
+                </button>
+
+                <!-- Slide Cart Trigger -->
+                <button id="cart-drawer-toggle" class="px-3.5 py-2 bg-gradient-to-r from-warm-500 to-amber-600 hover:from-warm-400 hover:to-amber-500 text-black font-extrabold rounded-xl flex items-center gap-2 shadow-lg shadow-warm-500/20 transition-all active:scale-95 text-xs">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Bag</span>
+                    <span id="cart-counter" class="bg-black text-warm-400 text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
+                </button>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 text-zinc-400 hover:text-white">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- SEARCH OVERLAY BAR -->
+    <div id="search-bar-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-start justify-center pt-24 px-4">
+        <div class="w-full max-w-2xl glass-card rounded-2xl p-4 border border-zinc-700/80 shadow-2xl relative">
+            <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
+                <i data-lucide="search" class="w-5 h-5 text-warm-400"></i>
+                <input id="search-input" type="text" placeholder="Search hoodies, oversized tees, cargo pants..." class="w-full bg-transparent text-white focus:outline-none text-sm placeholder:text-zinc-500">
+                <button id="close-search-btn" class="text-zinc-500 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="search-results" class="py-4 text-xs text-zinc-400">Type to filter clothing catalog in real-time...</div>
+        </div>
+    </div>
+
+    <!-- MOBILE MENU OVERLAY -->
+    <div id="mobile-menu" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl hidden flex-col justify-center items-center gap-8 text-lg font-bold">
+        <button id="close-mobile-menu" class="absolute top-6 right-6 p-2 text-zinc-400 hover:text-white">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <a href="#hero" class="mobile-link text-zinc-300 hover:text-warm-400">Home</a>
+        <a href="#shop" class="mobile-link text-zinc-300 hover:text-warm-400">Shop Collection</a>
+        <a href="#studio" class="mobile-link text-warm-400 flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5"></i> Virtual Fitting Studio
+        </a>
+        <a href="#about" class="mobile-link text-zinc-300 hover:text-warm-400">Brand Story</a>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative pt-36 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+        <!-- Glowing Orbs Background Effect -->
+        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] warm-glow rounded-full blur-3xl pointer-events-none animate-glow-pulse"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Hero Left Typography Content -->
+                <div class="lg:col-span-7 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-bold text-warm-400 mb-6 shadow-md">
+                        <span class="flex h-2 w-2 rounded-full bg-warm-400 animate-ping"></span>
+                        FW/2026 Architectural Drop Available
+                    </div>
+
+                    <h1 class="text-4xl sm:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6">
+                        Sculpted <span class="text-transparent bg-clip-text bg-gradient-to-r from-warm-400 via-amber-200 to-warm-500">Silhouettes.</span>
+                        <br>Modern Luxury Streetwear.
+                    </h1>
+
+                    <p class="text-zinc-400 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 mb-8 font-normal leading-relaxed">
+                        Heavyweight organic textiles, minimalist cuts, and digital fit previewing. Crafted for those who define aesthetic standards.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="#shop" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-warm-500 to-amber-600 hover:from-warm-400 hover:to-amber-500 text-black font-extrabold rounded-xl transition-all duration-200 shadow-xl shadow-warm-500/25 flex items-center justify-center gap-2 group active:scale-95 text-sm">
+                            <span>Explore Collection</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#studio" class="w-full sm:w-auto px-8 py-4 glass-card hover:bg-zinc-800/80 text-zinc-200 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border border-zinc-700/60 text-sm">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-warm-400"></i>
+                            <span>Try Virtual Stylist</span>
+                        </a>
+                    </div>
+
+                    <!-- Metrics Badges -->
+                    <div class="grid grid-cols-3 gap-6 pt-12 border-t border-zinc-800/80 mt-12 max-w-md mx-auto lg:mx-0">
+                        <div>
+                            <p class="text-2xl font-black text-white">480 GSM</p>
+                            <p class="text-xs text-zinc-500 font-medium mt-0.5">Heavy French Terry</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black text-white">100%</p>
+                            <p class="text-xs text-zinc-500 font-medium mt-0.5">Organic Cotton</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black text-white">Global</p>
+                            <p class="text-xs text-zinc-500 font-medium mt-0.5">Express Dispatch</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Interactive Visual Showcase -->
+                <div class="lg:col-span-5">
+                    <div class="relative max-w-md mx-auto">
+                        <div class="glass-card rounded-3xl p-4 border border-zinc-800 shadow-2xl relative overflow-hidden">
+                            <div class="relative h-[480px] rounded-2xl overflow-hidden group">
+                                <img id="hero-feature-img" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80" alt="Hero Outfit Look" class="w-full h-full object-cover object-top transition-all duration-700">
+                                
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+
+                                <div class="absolute top-4 left-4 glass-header px-3.5 py-1.5 rounded-full text-xs font-bold text-white flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-warm-400 animate-ping"></span>
+                                    <span>Look #01 • Cyber Oversized Hoodie</span>
+                                </div>
+
+                                <div class="absolute bottom-6 left-6 right-6">
+                                    <span class="text-[10px] uppercase font-black tracking-widest text-warm-400 mb-1 block">Featured Drop</span>
+                                    <h3 class="text-2xl font-black text-white mb-2">Architectural Heavy Hoodie</h3>
+                                    <p class="text-xs text-zinc-300 line-clamp-2 mb-4">Structured boxy drape with reinforced double-stitched seams and thermal collar insulation.</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xl font-extrabold text-white">$145.00</span>
+                                        <button onclick="openQuickView(1)" class="px-4 py-2 bg-warm-500 text-black text-xs font-extrabold rounded-lg hover:bg-warm-400 transition-colors shadow-md">
+                                            Quick View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORY FILTER & CATALOG SECTION -->
+    <section id="shop" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Section Header & Tag Filter -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                <div>
+                    <span class="text-xs font-black uppercase tracking-widest text-warm-400">Curated Streetwear</span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-white mt-1">Explore Collection</h2>
+                </div>
+
+                <!-- Interactive Category Filter Bar -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar" id="category-filters">
+                    <button data-category="all" class="filter-btn active px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-warm-500 text-black shadow-lg shadow-warm-500/20">All Items</button>
+                    <button data-category="hoodies" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">Hoodies</button>
+                    <button data-category="tees" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">Oversized Tees</button>
+                    <button data-category="outerwear" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">Outerwear</button>
+                    <button data-category="pants" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">Tailored Pants</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Product Grid -->
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Product cards dynamically rendered by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE VIRTUAL FITTING ROOM STUDIO -->
+    <section id="studio" class="py-20 relative bg-zinc-950/80 border-y border-zinc-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="px-3.5 py-1.5 rounded-full bg-warm-500/10 text-warm-400 text-xs font-extrabold uppercase tracking-widest border border-warm-500/20 inline-block mb-3">
+                    Interactive Fitting Studio
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-black text-white">Visual Outfit Combinator</h2>
+                <p class="text-zinc-400 text-xs sm:text-sm mt-2">Mix and match tops, outerwear, and bottoms in real-time to preview complete silhouettes before adding as an outfit bundle.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center glass-card p-6 sm:p-10 rounded-3xl border border-zinc-800">
+                
+                <!-- Left Option Controls -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-warm-400 mb-3 flex items-center gap-2">
+                            <i data-lucide="shirt" class="w-4 h-4"></i> 1. Pick Top / Tee
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2.5" id="studio-tops"></div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-warm-400 mb-3 flex items-center gap-2">
+                            <i data-lucide="layers" class="w-4 h-4"></i> 2. Pick Outerwear
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2.5" id="studio-outerwear"></div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-warm-400 mb-3 flex items-center gap-2">
+                            <i data-lucide="scissors" class="w-4 h-4"></i> 3. Pick Pants
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2.5" id="studio-bottoms"></div>
+                    </div>
+                </div>
+
+                <!-- Center Interactive Canvas Mannequin Box -->
+                <div class="lg:col-span-5 flex flex-col items-center">
+                    <div class="relative w-full max-w-xs h-[420px] bg-zinc-900/90 rounded-2xl p-4 border border-zinc-700/60 flex flex-col items-center justify-between overflow-hidden shadow-2xl">
+                        
+                        <div class="absolute inset-0 warm-glow rounded-2xl pointer-events-none opacity-50"></div>
+
+                        <!-- Top Preview Image -->
+                        <div class="relative z-10 w-full h-1/3 flex items-center justify-center p-1">
+                            <img id="studio-top-img" src="" class="max-h-full object-contain filter drop-shadow-xl transition-all duration-300">
+                        </div>
+
+                        <!-- Outerwear Preview Image -->
+                        <div class="relative z-10 w-full h-1/3 flex items-center justify-center p-1">
+                            <img id="studio-outer-img" src="" class="max-h-full object-contain filter drop-shadow-xl transition-all duration-300">
+                        </div>
+
+                        <!-- Bottom Preview Image -->
+                        <div class="relative z-10 w-full h-1/3 flex items-center justify-center p-1">
+                            <img id="studio-bottom-img" src="" class="max-h-full object-contain filter drop-shadow-xl transition-all duration-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Outfit Bundle Checkout Summary -->
+                <div class="lg:col-span-3 flex flex-col justify-between h-full bg-zinc-900/80 p-6 rounded-2xl border border-zinc-800">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-warm-400">Bundle Savings</span>
+                        <h4 class="text-lg font-extrabold text-white mt-1 mb-4">Complete Fit Bundle</h4>
+                        
+                        <div class="space-y-3 text-xs text-zinc-300 mb-6">
+                            <div class="flex justify-between pb-2 border-b border-zinc-800">
+                                <span class="text-zinc-500" id="studio-top-label">Top: --</span>
+                                <span class="font-bold text-white" id="studio-top-val">$0</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-zinc-800">
+                                <span class="text-zinc-500" id="studio-outer-label">Outer: --</span>
+                                <span class="font-bold text-white" id="studio-outer-val">$0</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-zinc-800">
+                                <span class="text-zinc-500" id="studio-bottom-label">Bottom: --</span>
+                                <span class="font-bold text-white" id="studio-bottom-val">$0</span>
+                            </div>
+                            <div class="flex justify-between text-emerald-400 font-semibold pt-1">
+                                <span>Outfit Styling Discount (15%)</span>
+                                <span id="studio-discount-val">-$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-baseline mb-4">
+                            <span class="text-xs text-zinc-400 font-bold uppercase">Bundle Total</span>
+                            <span class="text-2xl font-black text-white" id="studio-total-price">$0.00</span>
+                        </div>
+                        <button id="add-bundle-btn" class="w-full py-3.5 bg-gradient-to-r from-warm-500 to-amber-600 hover:from-warm-400 hover:to-amber-500 text-black font-extrabold rounded-xl shadow-lg shadow-warm-500/20 transition-all flex items-center justify-center gap-2 text-xs active:scale-95">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                            <span>Add Entire Look To Bag</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- BRAND STORY / HIGHLIGHTS -->
+    <section id="about" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <div class="glass-card p-8 rounded-2xl relative">
+                    <div class="w-12 h-12 bg-warm-500/10 rounded-xl flex items-center justify-center text-warm-400 mb-6">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-extrabold text-white mb-2">Sustainable Heavyweight</h3>
+                    <p class="text-zinc-400 text-xs leading-relaxed">Made with 100% organic French Terry cotton mills. Pre-shrunk weave that retains structural shape wash after wash.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl relative">
+                    <div class="w-12 h-12 bg-warm-500/10 rounded-xl flex items-center justify-center text-warm-400 mb-6">
+                        <i data-lucide="truck" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-extrabold text-white mb-2">Express Global Logistics</h3>
+                    <p class="text-zinc-400 text-xs leading-relaxed">Dispatched from carbon-neutral hubs with fully tracked express air freight to your door in under 72 hours.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl relative">
+                    <div class="w-12 h-12 bg-warm-500/10 rounded-xl flex items-center justify-center text-warm-400 mb-6">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-extrabold text-white mb-2">30-Day Automated Guarantee</h3>
+                    <p class="text-zinc-400 text-xs leading-relaxed">Instant automated sizing returns or exchanges via our digital self-serve returns portal.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-zinc-950 border-t border-zinc-800/80 pt-16 pb-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
+                
+                <div class="md:col-span-2">
+                    <a href="#" class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-warm-500 flex items-center justify-center font-black text-black">t</div>
+                        <span class="text-xl font-black text-white">tryclothes<span class="text-warm-500">.</span></span>
+                    </a>
+                    <p class="text-zinc-400 text-xs max-w-sm mb-6 leading-relaxed">High-fashion streetwear designed for timeless aesthetics and modern silhouettes.</p>
+                    <div class="flex gap-4 text-zinc-400">
+                        <a href="#" class="hover:text-warm-400 transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                        <a href="#" class="hover:text-warm-400 transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                        <a href="#" class="hover:text-warm-400 transition-colors"><i data-lucide="youtube" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-black text-white uppercase tracking-wider mb-4">Navigation</h4>
+                    <ul class="space-y-2.5 text-xs text-zinc-400">
+                        <li><a href="#hero" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#shop" class="hover:text-white transition-colors">Collection</a></li>
+                        <li><a href="#studio" class="hover:text-white transition-colors">Fitting Room</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-black text-white uppercase tracking-wider mb-4">Support</h4>
+                    <ul class="space-y-2.5 text-xs text-zinc-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Order Tracking</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Sizing Chart</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Returns & Exchange</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-black text-white uppercase tracking-wider mb-4">Secret Drop List</h4>
+                    <p class="text-[11px] text-zinc-400 mb-3">Subscribe for early passwords to limited drops.</p>
+                    <form id="newsletter-form" class="space-y-2">
+                        <input type="email" placeholder="enter email..." required class="w-full px-3 py-2 bg-zinc-900 text-white rounded-xl text-xs border border-zinc-800 focus:outline-none focus:border-warm-500">
+                        <button type="submit" class="w-full py-2 bg-warm-500 hover:bg-warm-400 text-black font-extrabold text-xs rounded-xl transition-all">Join Drop List</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <div class="pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-zinc-500 gap-4">
+                <p>&copy; 2026 tryclothes Inc. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-zinc-400">Privacy Policy</a>
+                    <a href="#" class="hover:text-zinc-400">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SLIDE-OUT CART DRAWER -->
+    <div id="cart-drawer-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    
+    <aside id="cart-drawer" class="fixed top-0 right-0 w-full sm:w-[420px] h-full bg-zinc-950 border-l border-zinc-800 z-50 translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl">
+        
+        <!-- Cart Drawer Header -->
+        <div class="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i data-lucide="shopping-bag" class="w-5 h-5 text-warm-400"></i>
+                <h3 class="text-base font-extrabold text-white">Your Shopping Bag</h3>
+            </div>
+            <button id="close-cart-btn" class="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Free Shipping Target Progress Bar -->
+        <div class="px-6 py-3 bg-zinc-900/80 border-b border-zinc-800">
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+                <span id="shipping-progress-text" class="text-zinc-300">Add $50 more for FREE Express Shipping</span>
+                <span id="shipping-progress-percent" class="text-warm-400">0%</span>
+            </div>
+            <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div id="shipping-progress-bar" class="h-full bg-warm-500 transition-all duration-300 w-0"></div>
+            </div>
+        </div>
+
+        <!-- Cart Items Container -->
+        <div id="cart-items-container" class="p-6 overflow-y-auto flex-1 space-y-4">
+            <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-center text-zinc-500 py-12">
+                <i data-lucide="shopping-bag" class="w-12 h-12 mb-3 stroke-[1.2]"></i>
+                <p class="font-semibold text-zinc-400">Your bag is currently empty</p>
+                <p class="text-xs mt-1">Explore our collections to add your fits.</p>
+            </div>
+        </div>
+
+        <!-- Promo Code & Cart Checkout Breakdown -->
+        <div class="p-6 border-t border-zinc-800 bg-zinc-900/60 space-y-4">
+            
+            <!-- Promo Code Input -->
+            <div class="flex gap-2">
+                <input id="promo-input" type="text" placeholder="Promo code (e.g. TRY10)" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-warm-500 uppercase">
+                <button id="apply-promo-btn" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold rounded-xl border border-zinc-700">Apply</button>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between text-zinc-400">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal" class="font-bold text-white">$0.00</span>
+                </div>
+                <div class="flex justify-between text-zinc-400">
+                    <span>Promo Discount</span>
+                    <span id="cart-discount" class="font-bold text-emerald-400">-$0.00</span>
+                </div>
+                <div class="flex justify-between text-zinc-400">
+                    <span>Estimated Express Shipping</span>
+                    <span id="cart-shipping" class="font-bold text-white">$15.00</span>
+                </div>
+                <div class="flex justify-between text-base font-black text-white pt-2 border-t border-zinc-800">
+                    <span>Total</span>
+                    <span id="cart-total" class="text-warm-400">$0.00</span>
+                </div>
+            </div>
+
+            <button id="checkout-btn" class="w-full py-4 bg-gradient-to-r from-warm-500 to-amber-600 hover:from-warm-400 hover:to-amber-500 text-black font-extrabold rounded-xl shadow-lg shadow-warm-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+                <span>Proceed To Express Checkout</span>
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- QUICK VIEW PRODUCT MODAL -->
+    <div id="quick-view-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-3xl rounded-3xl p-6 sm:p-8 border border-zinc-700 relative max-h-[90vh] overflow-y-auto">
+            <button id="close-quick-view" class="absolute top-5 right-5 text-zinc-400 hover:text-white z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center" id="quick-view-content">
+                <!-- Modal content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- PRODUCT DATABASE ---
+        const PRODUCTS = [
+            {
+                id: 1,
+                name: 'Architectural Heavy Hoodie',
+                category: 'hoodies',
+                price: 145.00,
+                badge: 'Best Seller',
+                rating: 4.9,
+                colors: [
+                    { name: 'Onyx Black', hex: '#121216', img: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80' },
+                    { name: 'Sage Olive', hex: '#4b5548', img: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=800&q=80' },
+                    { name: 'Desert Sand', hex: '#b3a286', img: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=800&q=80' }
+                ],
+                sizes: ['S', 'M', 'L', 'XL'],
+                description: 'Structured 480 GSM organic cotton hoodie featuring boxy oversized drape and thermal double collar.'
+            },
+            {
+                id: 2,
+                name: 'Acid-Wash Oversized Tee',
+                category: 'tees',
+                price: 68.00,
+                badge: 'New Drop',
+                rating: 4.8,
+                colors: [
+                    { name: 'Washed Charcoal', hex: '#27272a', img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80' },
+                    { name: 'Raw Vintage White', hex: '#e4e4e7', img: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80' }
+                ],
+                sizes: ['M', 'L', 'XL', 'XXL'],
+                description: '280 GSM heavy jersey cotton t-shirt with custom distressed collar wash.'
+            },
+            {
+                id: 3,
+                name: 'Tactical Cargo Trousers',
+                category: 'pants',
+                price: 155.00,
+                badge: 'Limited Edition',
+                rating: 5.0,
+                colors: [
+                    { name: 'Midnight Black', hex: '#0a0a0c', img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80' },
+                    { name: 'Khaki Olive', hex: '#78716c', img: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=800&q=80' }
+                ],
+                sizes: ['S', 'M', 'L', 'XL'],
+                description: 'Modular multi-pocket utility pants with water-repellent nylon hybrid weave.'
+            },
+            {
+                id: 4,
+                name: 'Cybernetic Puffer Outerwear',
+                category: 'outerwear',
+                price: 220.00,
+                badge: 'Featured',
+                rating: 4.9,
+                colors: [
+                    { name: 'Matte Black', hex: '#18181b', img: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=800&q=80' },
+                    { name: 'Electric Cobalt', hex: '#1d4ed8', img: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80' }
+                ],
+                sizes: ['M', 'L', 'XL'],
+                description: 'Thermal insulated puffer jacket with detachable tactical sleeves.'
+            },
+            {
+                id: 5,
+                name: 'Minimalist Layering Fleece',
+                category: 'hoodies',
+                price: 125.00,
+                badge: 'Popular',
+                rating: 4.7,
+                colors: [
+                    { name: 'Cream Oat', hex: '#f5f5f4', img: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80' }
+                ],
+                sizes: ['S', 'M', 'L'],
+                description: 'Plush polar fleece layer with concealed zipper side pockets.'
+            },
+            {
+                id: 6,
+                name: 'Pleated Tailored Track Pants',
+                category: 'pants',
+                price: 130.00,
+                badge: 'New Drop',
+                rating: 4.8,
+                colors: [
+                    { name: 'Deep Jet Black', hex: '#121216', img: 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?auto=format&fit=crop&w=800&q=80' }
+                ],
+                sizes: ['S', 'M', 'L', 'XL'],
+                description: 'Relaxed fit pleated track trousers engineered for high-fashion versatility.'
+            }
+        ];
+
+        // --- GLOBAL APP STATE ---
+        let cart = [];
+        let wishlist = new Set();
+        let selectedProductState = {};
+        let activeCategory = 'all';
+        let appliedPromo = null;
+
+        // Virtual Studio Outfit Selection State
+        let studioState = {
+            top: PRODUCTS.find(p => p.category === 'tees'),
+            outer: PRODUCTS.find(p => p.category === 'outerwear'),
+            bottom: PRODUCTS.find(p => p.category === 'pants')
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initProductStates();
+            renderCatalog(PRODUCTS);
+            renderStudio();
+            setupEvents();
+        });
+
+        function initProductStates() {
+            PRODUCTS.forEach(p => {
+                selectedProductState[p.id] = {
+                    colorIndex: 0,
+                    size: p.sizes[0]
+                };
+            });
+        }
+
+        // --- CATALOG RENDERING ---
+        function renderCatalog(items) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+
+            items.forEach(product => {
+                const state = selectedProductState[product.id];
+                const currentColor = product.colors[state.colorIndex];
+                const isWishlisted = wishlist.has(product.id);
+
+                const card = document.createElement('div');
+                card.className = "product-card glass-card rounded-2xl p-4 flex flex-col justify-between group transition-all duration-300 relative border border-zinc-800/80";
+                card.setAttribute('data-tilt', '');
+                card.setAttribute('data-tilt-max', '3');
+
+                card.innerHTML = `
+                    <div>
+                        <!-- Product Preview Container -->
+                        <div class="relative h-80 w-full rounded-xl overflow-hidden bg-zinc-900 mb-4">
+                            <img id="prod-img-${product.id}" src="${currentColor.img}" alt="${product.name}" class="w-full h-full object-cover object-center img-zoom">
+                            
+                            <!-- Badges -->
+                            <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                                <span class="px-2.5 py-1 rounded-md bg-zinc-950/80 text-[10px] font-black uppercase tracking-wider text-warm-400 backdrop-blur-md border border-warm-500/20">
+                                    ${product.badge}
+                                </span>
+                            </div>
+
+                            <!-- Wishlist Toggle -->
+                            <button onclick="toggleWishlist(${product.id}, event)" class="absolute top-3 right-3 p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white hover:text-red-500 transition-colors z-10">
+                                <i data-lucide="heart" class="w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}"></i>
+                            </button>
+
+                            <!-- Hover Quick View Action Button Overlay -->
+                            <div class="absolute inset-x-4 bottom-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2 z-10">
+                                <button onclick="openQuickView(${product.id})" class="flex-1 py-2.5 bg-black/80 hover:bg-black text-white text-xs font-extrabold rounded-xl backdrop-blur-md transition-colors border border-zinc-700">
+                                    Quick View
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-white text-sm group-hover:text-warm-400 transition-colors">${product.name}</h3>
+                            <span class="font-black text-white text-sm ml-2">$${product.price.toFixed(2)}</span>
+                        </div>
+
+                        <p class="text-xs text-zinc-400 line-clamp-2 mb-4 font-normal">${product.description}</p>
+
+                        <!-- Color Swatch Selectors -->
+                        <div class="mb-4">
+                            <span class="text-[10px] uppercase font-black tracking-wider text-zinc-500 block mb-1.5">
+                                Color: <span class="text-zinc-300" id="color-label-${product.id}">${currentColor.name}</span>
+                            </span>
+                            <div class="flex gap-2">
+                                ${product.colors.map((c, idx) => `
+                                    <button onclick="switchProductColor(${product.id}, ${idx})" 
+                                        class="w-5 h-5 rounded-full border-2 transition-all ${idx === state.colorIndex ? 'border-warm-500 scale-110 shadow-md shadow-warm-500/50' : 'border-transparent opacity-60 hover:opacity-100'}" 
+                                        style="background-color: ${c.hex}" 
+                                        title="${c.name}">
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Size Pills -->
+                        <div class="mb-5">
+                            <span class="text-[10px] uppercase font-black tracking-wider text-zinc-500 block mb-1.5">Size</span>
+                            <div class="flex gap-1.5">
+                                ${product.sizes.map(s => `
+                                    <button onclick="switchProductSize(${product.id}, '${s}')" 
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${s === state.size ? 'bg-warm-500 text-black border-warm-400' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800'}">
+                                        ${s}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add to Bag Button -->
+                    <button onclick="addToCart(${product.id})" class="w-full py-3 bg-zinc-900 hover:bg-warm-500 hover:text-black text-white font-extrabold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-xs border border-zinc-800 hover:border-warm-400 shadow-md active:scale-95">
+                        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                        <span>Add To Bag</span>
+                    </button>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+            if (window.VanillaTilt) {
+                VanillaTilt.init(document.querySelectorAll(".product-card"));
+            }
+        }
+
+        // --- PRODUCT INTERACTIONS ---
+        function switchProductColor(productId, colorIdx) {
+            selectedProductState[productId].colorIndex = colorIdx;
+            const product = PRODUCTS.find(p => p.id === productId);
+            const color = product.colors[colorIdx];
+
+            const img = document.getElementById(`prod-img-${productId}`);
+            const label = document.getElementById(`color-label-${productId}`);
+
+            if (img) img.src = color.img;
+            if (label) label.textContent = color.name;
+            renderCatalog(getFilteredProducts());
+        }
+
+        function switchProductSize(productId, size) {
+            selectedProductState[productId].size = size;
+            renderCatalog(getFilteredProducts());
+        }
+
+        function toggleWishlist(productId, e) {
+            if (wishlist.has(productId)) {
+                wishlist.delete(productId);
+                showToast('Removed from wishlist');
+            } else {
+                wishlist.add(productId);
+                showToast('Saved to wishlist ❤️');
+            }
+
+            const badge = document.getElementById('wishlist-badge');
+            if (wishlist.size > 0) {
+                badge.textContent = wishlist.size;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            renderCatalog(getFilteredProducts());
+        }
+
+        function getFilteredProducts() {
+            if (activeCategory === 'all') return PRODUCTS;
+            return PRODUCTS.filter(p => p.category === activeCategory);
+        }
+
+        // --- VIRTUAL FITTING STUDIO ---
+        function renderStudio() {
+            const topsBox = document.getElementById('studio-tops');
+            const outerBox = document.getElementById('studio-outerwear');
+            const bottomsBox = document.getElementById('studio-bottoms');
+
+            const tops = PRODUCTS.filter(p => p.category === 'tees' || p.category === 'hoodies');
+            const outerwear = PRODUCTS.filter(p => p.category === 'outerwear' || p.category === 'hoodies');
+            const bottoms = PRODUCTS.filter(p => p.category === 'pants');
+
+            topsBox.innerHTML = tops.map(item => `
+                <button onclick="setStudioItem('top', ${item.id})" class="p-1.5 rounded-xl bg-zinc-900 border transition-all ${studioState.top?.id === item.id ? 'border-warm-500 bg-warm-500/10' : 'border-zinc-800'}">
+                    <img src="${item.colors[0].img}" class="w-full h-14 object-cover rounded-lg mb-1">
+                    <span class="text-[9px] text-zinc-300 font-bold block truncate">${item.name}</span>
+                </button>
+            `).join('');
+
+            outerBox.innerHTML = outerwear.map(item => `
+                <button onclick="setStudioItem('outer', ${item.id})" class="p-1.5 rounded-xl bg-zinc-900 border transition-all ${studioState.outer?.id === item.id ? 'border-warm-500 bg-warm-500/10' : 'border-zinc-800'}">
+                    <img src="${item.colors[0].img}" class="w-full h-14 object-cover rounded-lg mb-1">
+                    <span class="text-[9px] text-zinc-300 font-bold block truncate">${item.name}</span>
+                </button>
+            `).join('');
+
+            bottomsBox.innerHTML = bottoms.map(item => `
+                <button onclick="setStudioItem('bottom', ${item.id})" class="p-1.5 rounded-xl bg-zinc-900 border transition-all ${studioState.bottom?.id === item.id ? 'border-warm-500 bg-warm-500/10' : 'border-zinc-800'}">
+                    <img src="${item.colors[0].img}" class="w-full h-14 object-cover rounded-lg mb-1">
+                    <span class="text-[9px] text-zinc-300 font-bold block truncate">${item.name}</span>
+                </button>
+            `).join('');
+
+            // Update Preview Images
+            document.getElementById('studio-top-img').src = studioState.top ? studioState.top.colors[0].img : '';
+            document.getElementById('studio-outer-img').src = studioState.outer ? studioState.outer.colors[0].img : '';
+            document.getElementById('studio-bottom-img').src = studioState.bottom ? studioState.bottom.colors[0].img : '';
+
+            // Calculate Bundle Price
+            const topP = studioState.top ? studioState.top.price : 0;
+            const outerP = studioState.outer ? studioState.outer.price : 0;
+            const bottomP = studioState.bottom ? studioState.bottom.price : 0;
+
+            const sub = topP + outerP + bottomP;
+            const discount = sub * 0.15; // 15% Bundle savings
+            const total = sub - discount;
+
+            document.getElementById('studio-top-label').textContent = studioState.top ? studioState.top.name : 'None';
+            document.getElementById('studio-top-val').textContent = `$${topP.toFixed(2)}`;
+
+            document.getElementById('studio-outer-label').textContent = studioState.outer ? studioState.outer.name : 'None';
+            document.getElementById('studio-outer-val').textContent = `$${outerP.toFixed(2)}`;
+
+            document.getElementById('studio-bottom-label').textContent = studioState.bottom ? studioState.bottom.name : 'None';
+            document.getElementById('studio-bottom-val').textContent = `$${bottomP.toFixed(2)}`;
+
+            document.getElementById('studio-discount-val').textContent = `-$${discount.toFixed(2)}`;
+            document.getElementById('studio-total-price').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function setStudioItem(type, productId) {
+            const product = PRODUCTS.find(p => p.id === productId);
+            studioState[type] = product;
+            renderStudio();
+        }
+
+        // --- CART SYSTEM ---
+        function addToCart(productId, customSize = null, customColor = null) {
+            const product = PRODUCTS.find(p => p.id === productId);
+            const state = selectedProductState[productId];
+            const size = customSize || state.size;
+            const color = customColor || product.colors[state.colorIndex];
+
+            const existingIdx = cart.findIndex(i => i.id === productId && i.size === size && i.color.name === color.name);
+
+            if (existingIdx > -1) {
+                cart[existingIdx].qty += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: color.img,
+                    size: size,
+                    color: color,
+                    qty: 1
+                });
+            }
+
+            updateCartUI();
+            showToast(`Added ${product.name} to Bag!`);
+            openCart();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            const counter = document.getElementById('cart-counter');
+
+            const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            counter.textContent = totalCount;
+
+            if (cart.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyMsg);
+                document.getElementById('cart-subtotal').textContent = '$0.00';
+                document.getElementById('cart-total').textContent = '$0.00';
+                document.getElementById('cart-discount').textContent = '-$0.00';
+                updateShippingProgress(0);
+                return;
+            }
+
+            container.innerHTML = '';
+            let subtotal = 0;
+
+            cart.forEach((item, index) => {
+                subtotal += item.price * item.qty;
+
+                const card = document.createElement('div');
+                card.className = "flex gap-4 bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800 items-center";
+                card.innerHTML = `
+                    <img src="${item.image}" class="w-16 h-20 object-cover rounded-xl bg-zinc-950">
+                    <div class="flex-1">
+                        <h4 class="text-xs font-bold text-white line-clamp-1">${item.name}</h4>
+                        <p class="text-[10px] text-zinc-400 mt-0.5">Size: ${item.size} | Color: ${item.color.name}</p>
+                        <p class="text-xs font-black text-warm-400 mt-1">$${(item.price * item.qty).toFixed(2)}</p>
+                        
+                        <div class="flex items-center gap-2 mt-2">
+                            <button onclick="changeCartQty(${index}, -1)" class="w-5 h-5 rounded bg-zinc-800 text-white text-xs font-bold hover:bg-zinc-700 flex items-center justify-center">-</button>
+                            <span class="text-xs font-bold text-white">${item.qty}</span>
+                            <button onclick="changeCartQty(${index}, 1)" class="w-5 h-5 rounded bg-zinc-800 text-white text-xs font-bold hover:bg-zinc-700 flex items-center justify-center">+</button>
+                        </div>
+                    </div>
+                    <button onclick="removeCartItem(${index})" class="text-zinc-500 hover:text-red-400 p-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+
+            let discount = 0;
+            if (appliedPromo === 'TRY10') {
+                discount = subtotal * 0.10;
+            }
+
+            const shipping = subtotal >= 200 ? 0 : 15;
+            const total = subtotal - discount + shipping;
+
+            document.getElementById('cart-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('cart-discount').textContent = `-$${discount.toFixed(2)}`;
+            document.getElementById('cart-shipping').textContent = shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`;
+            document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
+
+            updateShippingProgress(subtotal);
+            lucide.createIcons();
+        }
+
+        function changeCartQty(idx, delta) {
+            cart[idx].qty += delta;
+            if (cart[idx].qty <= 0) cart.splice(idx, 1);
+            updateCartUI();
+        }
+
+        function removeCartItem(idx) {
+            cart.splice(idx, 1);
+            updateCartUI();
+            showToast('Item removed from Bag');
+        }
+
+        function updateShippingProgress(subtotal) {
+            const target = 200;
+            const pct = Math.min(100, Math.round((subtotal / target) * 100));
+
+            document.getElementById('shipping-progress-bar').style.width = `${pct}%`;
+            document.getElementById('shipping-progress-percent').textContent = `${pct}%`;
+
+            if (subtotal >= target) {
+                document.getElementById('shipping-progress-text').textContent = '🎉 You unlocked FREE Express Shipping!';
+            } else {
+                const diff = (target - subtotal).toFixed(2);
+                document.getElementById('shipping-progress-text').textContent = `Add $${diff} more for FREE Express Shipping`;
+            }
+        }
+
+        function openCart() {
+            document.getElementById('cart-drawer').classList.remove('translate-x-full');
+            document.getElementById('cart-drawer-overlay').classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeCart() {
+            document.getElementById('cart-drawer').classList.add('translate-x-full');
+            document.getElementById('cart-drawer-overlay').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // --- QUICK VIEW MODAL ---
+        function openQuickView(productId) {
+            const product = PRODUCTS.find(p => p.id === productId);
+            const content = document.getElementById('quick-view-content');
+
+            content.innerHTML = `
+                <div class="h-80 rounded-2xl overflow-hidden bg-zinc-900">
+                    <img id="qv-img" src="${product.colors[0].img}" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase text-warm-400">${product.badge}</span>
+                    <h3 class="text-2xl font-black text-white mt-1">${product.name}</h3>
+                    <p class="text-xl font-extrabold text-white mt-2">$${product.price.toFixed(2)}</p>
+                    <p class="text-xs text-zinc-400 mt-3 leading-relaxed">${product.description}</p>
+                    
+                    <div class="mt-4">
+                        <label class="text-xs font-bold text-zinc-300 block mb-2">Available Sizes</label>
+                        <div class="flex gap-2">
+                            ${product.sizes.map(s => `
+                                <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 text-white border border-zinc-700 hover:border-warm-500">${s}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <button onclick="addToCart(${product.id}); closeQuickViewModal();" class="w-full py-3.5 bg-warm-500 hover:bg-warm-400 text-black font-extrabold rounded-xl mt-6 transition-all text-xs">
+                        Add To Shopping Bag
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('quick-view-modal').classList.remove('hidden');
+        }
+
+        function closeQuickViewModal() {
+            document.getElementById('quick-view-modal').classList.add('hidden');
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'glass-card px-4 py-3 rounded-xl text-xs font-bold text-white shadow-2xl flex items-center gap-2 border border-warm-500/30 transition-all duration-300 transform translate-x-10 opacity-0 pointer-events-auto';
+            toast.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4 text-warm-400"></i><span>${msg}</span>`;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => toast.classList.remove('translate-x-10', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-x-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- GLOBAL EVENT LISTENERS ---
+        function setupEvents() {
+            // Cart Toggles
+            document.getElementById('cart-drawer-toggle').addEventListener('click', openCart);
+            document.getElementById('close-cart-btn').addEventListener('click', closeCart);
+            document.getElementById('cart-drawer-overlay').addEventListener('click', closeCart);
+
+            // Category Filter Buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('bg-warm-500', 'text-black', 'shadow-lg');
+                        b.classList.add('bg-zinc-900', 'text-zinc-400');
+                    });
+                    e.target.classList.remove('bg-zinc-900', 'text-zinc-400');
+                    e.target.classList.add('bg-warm-500', 'text-black', 'shadow-lg');
+
+                    activeCategory = e.target.getAttribute('data-category');
+                    renderCatalog(getFilteredProducts());
+                });
+            });
+
+            // Bundle Add Button
+            document.getElementById('add-bundle-btn').addEventListener('click', () => {
+                if (studioState.top) addToCart(studioState.top.id);
+                if (studioState.outer) addToCart(studioState.outer.id);
+                if (studioState.bottom) addToCart(studioState.bottom.id);
+                showToast('Complete Outfit Bundle added to Bag! 🎉');
+            });
+
+            // Quick View Close Modal
+            document.getElementById('close-quick-view').addEventListener('click', closeQuickViewModal);
+
+            // Search Modal Events
+            document.getElementById('search-trigger').addEventListener('click', () => {
+                document.getElementById('search-bar-modal').classList.remove('hidden');
+                document.getElementById('search-input').focus();
+            });
+            document.getElementById('close-search-btn').addEventListener('click', () => {
+                document.getElementById('search-bar-modal').classList.add('hidden');
+            });
+
+            // Promo Code Trigger
+            document.getElementById('apply-promo-btn').addEventListener('click', () => {
+                const code = document.getElementById('promo-input').value.trim().toUpperCase();
+                if (code === 'TRY10') {
+                    appliedPromo = 'TRY10';
+                    showToast('10% Promo Code Applied!');
+                    updateCartUI();
+                } else {
+                    showToast('Invalid Promo Code (Try TRY10)');
+                }
+            });
+
+            // Checkout Demo Trigger
+            document.getElementById('checkout-btn').addEventListener('click', () => {
+                if (cart.length === 0) return;
+                alert('Order simulated! Thank you for trying tryclothes.');
+                cart = [];
+                updateCartUI();
+                closeCart();
+            });
+
+            // Mobile Navigation Toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.remove('hidden');
+                document.getElementById('mobile-menu').classList.add('flex');
+            });
+            document.getElementById('close-mobile-menu').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.add('hidden');
+            });
+            document.querySelectorAll('.mobile-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                });
+            });
+        }
+    </script>
+</body>
+</html>
