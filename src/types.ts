@@ -3,15 +3,49 @@ export type ProductColor = {
   hex: string
 }
 
+export type ProductFieldType = 'text' | 'number' | 'boolean' | 'select' | 'color'
+
+export type ProductFieldDefinition = {
+  key: string
+  label: string
+  type: ProductFieldType
+  required: boolean
+  options?: string[]
+  unit?: string
+  hidden?: boolean
+}
+
+export type ProductType = {
+  id: string
+  name: string
+  fields: ProductFieldDefinition[]
+  created_at?: string
+}
+
+export type ProductVariant = {
+  id?: string
+  product_id?: string
+  color_name: string
+  color_hex: string
+  stock: number
+  images: string[]
+}
+
 export type Product = {
   id: string
   name: string
   description: string
   price: number
   category: string
+  type_id?: string | null
+  attributes?: Record<string, unknown>
+  brand?: string | null
+  condition?: string | null
   image_url: string
+  common_images?: string[]
   sizes: string[]
   colors: ProductColor[]
+  variants?: ProductVariant[]
   active: boolean
   created_at?: string
 }

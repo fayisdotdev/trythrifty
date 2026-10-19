@@ -6,10 +6,11 @@ import CartDrawer from './components/CartDrawer'
 import ProductCard from './components/ProductCard'
 import { loadStorefront } from './lib/catalog'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
-import type { CartItem, Product, StoreSettings } from './types'
+import type { CartItem, Product, ProductFieldDefinition, ProductType, StoreSettings } from './types'
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([])
+  const [productTypes, setProductTypes] = useState<ProductType[]>([])
   const [settings, setSettings] = useState<StoreSettings | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
@@ -22,11 +23,13 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [category, setCategory] = useState('all')
+  const [attributeFilters, setAttributeFilters] = useState<Record<string, string>>({})
   const [toast, setToast] = useState('')
 
   async function refreshStorefront() {
     const result = await loadStorefront()
     setProducts(result.products)
+    setProductTypes(result.productTypes)
     setSettings(result.settings)
   }
 
@@ -35,6 +38,7 @@ export default function App() {
     void loadStorefront().then((result) => {
       if (!alive) return
       setProducts(result.products)
+      setProductTypes(result.productTypes)
       setSettings(result.settings)
     }).catch((error: unknown) => {
       if (alive) setLoadError(error instanceof Error ? error.message : 'Could not load the storefront.')
@@ -100,11 +104,27 @@ export default function App() {
   }, [toast])
 
   const categories = useMemo(() => [...new Set(products.map((product) => product.category).filter(Boolean))], [products])
+  const productFilters = useMemo(() => productTypes.flatMap((productType) =>
+    productType.fields
+      .filter((field) => !field.hidden && (field.type === 'select' || field.type === 'boolean'))
+      .filter((field) => products.some((product) => product.type_id === productType.id && product.attributes?.[field.key] !== undefined))
+      .map((field: ProductFieldDefinition) => ({
+        id: `${productType.id}:${field.key}`,
+        typeId: productType.id,
+        field,
+        options: field.type === 'boolean' ? ['true', 'false'] : (field.options ?? []),
+      })),
+  ), [productTypes, products])
   const visibleProducts = useMemo(() => products.filter((product) => {
     const categoryMatches = category === 'all' || product.category === category
-    const searchMatches = `${product.name} ${product.description} ${product.category}`.toLowerCase().includes(search.toLowerCase())
-    return categoryMatches && searchMatches
-  }), [products, category, search])
+    const searchMatches = `${product.name} ${product.description} ${product.category} ${Object.values(product.attributes ?? {}).join(' ')}`.toLowerCase().includes(search.toLowerCase())
+    const attributesMatch = productFilters.every(({ id, typeId, field }) => {
+      const selected = attributeFilters[id]
+      if (!selected || product.type_id !== typeId) return true
+      return String(product.attributes?.[field.key]) === selected
+    })
+    return categoryMatches && searchMatches && attributesMatch
+  }), [products, category, search, productFilters, attributeFilters])
   const count = cart.reduce((sum, item) => sum + item.quantity, 0)
   const formatPrice = (value: number) => new Intl.NumberFormat('en-IN', {
     style: 'currency', currency: 'INR', maximumFractionDigits: 0,
@@ -163,8 +183,27 @@ export default function App() {
 
   async function saveProduct(product: Product) {
     if (!supabase) throw new Error('Connect Supabase before managing products.')
-    const { error } = await supabase.from('trythrifty_products').upsert(product)
-    if (error) throw error
+    const { variants = [], ...productRow } = product
+    const { error: productError } = await supabase.from('trythrifty_products').upsert(productRow)
+    if (productError) throw productError
+
+    const variantsToSave = variants.map((variant) => ({
+      ...variant,
+      id: variant.id ?? crypto.randomUUID(),
+      product_id: product.id,
+    }))
+    if (variantsToSave.length) {
+      const { error: variantsError } = await supabase.from('trythrifty_product_variants').upsert(variantsToSave)
+      if (variantsError) throw variantsError
+    }
+    const existingResult = await supabase.from('trythrifty_product_variants').select('id').eq('product_id', product.id)
+    if (existingResult.error) throw existingResult.error
+    const retainedIds = new Set(variantsToSave.map(({ id }) => id))
+    for (const existing of existingResult.data ?? []) {
+      if (retainedIds.has(existing.id)) continue
+      const { error: deleteError } = await supabase.from('trythrifty_product_variants').delete().eq('id', existing.id)
+      if (deleteError) throw deleteError
+    }
     await refreshStorefront()
   }
 
@@ -178,6 +217,20 @@ export default function App() {
   async function saveSettings(nextSettings: StoreSettings) {
     if (!supabase) throw new Error('Connect Supabase before managing storefront settings.')
     const { error } = await supabase.from('trythrifty_store_settings').upsert(nextSettings)
+    if (error) throw error
+    await refreshStorefront()
+  }
+
+  async function saveProductType(productType: ProductType) {
+    if (!supabase) throw new Error('Connect Supabase before managing product types.')
+    const { error } = await supabase.from('trythrifty_product_types').upsert(productType)
+    if (error) throw error
+    await refreshStorefront()
+  }
+
+  async function deleteProductType(typeId: string) {
+    if (!supabase) throw new Error('Connect Supabase before managing product types.')
+    const { error } = await supabase.from('trythrifty_product_types').delete().eq('id', typeId)
     if (error) throw error
     await refreshStorefront()
   }
@@ -199,7 +252,7 @@ export default function App() {
         <section className="panel gate-card"><span className="eyebrow">ACCESS RESTRICTED</span><h1>This account is not an admin.</h1><p className="muted">Sign in is working, but this account has not been promoted in the profiles table.</p><button className="button button-quiet" onClick={() => void signOut()}>Sign out</button><a className="back-link gate-back" href="#">Return to shop</a></section>
       </div>
     )
-    return <AdminPanel products={products} settings={settings} onBack={() => { window.location.hash = '' }} onSaveSettings={saveSettings} onSaveProduct={saveProduct} onDeleteProduct={deleteProduct} />
+    return <AdminPanel products={products} productTypes={productTypes} settings={settings} onBack={() => { window.location.hash = '' }} onSaveSettings={saveSettings} onSaveProduct={saveProduct} onDeleteProduct={deleteProduct} onSaveProductType={saveProductType} onDeleteProductType={deleteProductType} />
   }
 
   return (
@@ -248,6 +301,13 @@ export default function App() {
           <div className="collection-heading"><div><h2>{settings.collection_title}<br /><em>{settings.collection_title_emphasis}</em></h2><p>{settings.collection_description}</p></div>
             <div className="collection-filter">
               {['all', ...categories].map((item) => <button key={item} className={category === item ? 'selected' : ''} onClick={() => setCategory(item)}>{item === 'all' ? settings.collection_all_label : item}</button>)}
+              {productFilters.map(({ id, typeId, field, options }) => <label className="attribute-filter" key={id}>
+                <span>{productTypes.find((type) => type.id === typeId)?.name}: {field.label}</span>
+                <select value={attributeFilters[id] ?? ''} onChange={(event) => setAttributeFilters((current) => ({ ...current, [id]: event.target.value }))}>
+                  <option value="">Any</option>
+                  {options.map((option) => <option value={option} key={option}>{field.type === 'boolean' ? option === 'true' ? 'Yes' : 'No' : option}</option>)}
+                </select>
+              </label>)}
             </div>
           </div>
           {loading ? <div className="catalog-message">Loading the collection…</div> : visibleProducts.length === 0 ? (
@@ -259,7 +319,7 @@ export default function App() {
                 {search && <button className="text-action" onClick={() => setSearch('')}>Clear search <span>↗</span></button>}
               </div>
             </div>
-          ) : <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} formatPrice={formatPrice} onAdd={addToBag} />)}</div>}
+          ) : <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} productType={productTypes.find((type) => type.id === product.type_id)} formatPrice={formatPrice} onAdd={addToBag} />)}</div>}
         </section>
 
         <section className="story-section" id="story">

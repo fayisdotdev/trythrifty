@@ -38,7 +38,7 @@ export default function CartDrawer({ open, items, whatsappNumber, onClose, onQua
         <div className="cart-items">
           {items.length === 0 ? <div className="empty-bag"><ShoppingBag size={32} /><h3>Your bag is waiting.</h3><p>When a piece catches your eye, it will be here.</p></div> : items.map((item, index) => (
             <article className="cart-item" key={`${item.product.id}-${item.size}-${item.color}`}>
-              <img src={item.product.image_url} alt="" />
+              {item.product.image_url && <img src={item.product.image_url} alt="" />}
               <div className="cart-item-details">
                 <h3>{item.product.name}</h3>
                 <p>{[item.size, item.color].filter(Boolean).join(' · ')}</p>

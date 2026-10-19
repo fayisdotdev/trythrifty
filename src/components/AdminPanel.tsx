@@ -1,47 +1,25 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { ArrowLeft, ImagePlus, LoaderCircle, PackagePlus, Save, Settings2, Trash2 } from 'lucide-react'
 import { uploadAsset } from '../lib/catalog'
-import type { Product, ProductColor, StoreSettings } from '../types'
+import ProductEditor from './ProductEditor'
+import ProductTypesPanel from './ProductTypesPanel'
+import type { Product, ProductType, StoreSettings } from '../types'
 
 type AdminPanelProps = {
   products: Product[]
+  productTypes: ProductType[]
   settings: StoreSettings
   onBack: () => void
   onSaveSettings: (settings: StoreSettings) => Promise<void>
   onSaveProduct: (product: Product) => Promise<void>
   onDeleteProduct: (productId: string) => Promise<void>
+  onSaveProductType: (productType: ProductType) => Promise<void>
+  onDeleteProductType: (typeId: string) => Promise<void>
 }
 
-type ProductForm = {
-  name: string
-  description: string
-  price: string
-  category: string
-  image_url: string
-  sizes: string
-  colors: string
-}
-
-const emptyProduct: ProductForm = {
-  name: '', description: '', price: '', category: '', image_url: '', sizes: '', colors: '',
-}
-
-function productToForm(product: Product): ProductForm {
-  return {
-    name: product.name,
-    description: product.description,
-    price: String(product.price),
-    category: product.category,
-    image_url: product.image_url,
-    sizes: product.sizes.join(', '),
-    colors: product.colors.map(({ name, hex }) => `${name}: ${hex}`).join('\n'),
-  }
-}
-
-export default function AdminPanel({ products, settings, onBack, onSaveSettings, onSaveProduct, onDeleteProduct }: AdminPanelProps) {
-  const [section, setSection] = useState<'products' | 'brand'>('products')
-  const [draft, setDraft] = useState<ProductForm>(emptyProduct)
-  const [editingId, setEditingId] = useState<string | null>(null)
+export default function AdminPanel({ products, productTypes, settings, onBack, onSaveSettings, onSaveProduct, onDeleteProduct, onSaveProductType, onDeleteProductType }: AdminPanelProps) {
+  const [section, setSection] = useState<'products' | 'product-types' | 'brand'>('products')
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [settingsDraft, setSettingsDraft] = useState(settings)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -50,56 +28,19 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
   useEffect(() => setSettingsDraft(settings), [settings])
 
   function startEdit(product: Product) {
-    setDraft(productToForm(product))
-    setEditingId(product.id)
+    setEditingProduct(product)
     setSection('products')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  function cancelEdit() {
-    setDraft(emptyProduct)
-    setEditingId(null)
-  }
-
-  async function uploadImage(file: File, folder: 'products' | 'brand', settingsField?: 'logo_url' | 'favicon_url' | 'hero_image_url') {
+  async function uploadImage(file: File, settingsField: 'logo_url' | 'favicon_url' | 'hero_image_url') {
     setBusy(true)
     setError('')
     try {
-      const url = await uploadAsset(file, folder)
-      if (folder === 'products') setDraft((current) => ({ ...current, image_url: url }))
-      else if (settingsField) setSettingsDraft((current) => ({ ...current, [settingsField]: url }))
+      const url = await uploadAsset(file, 'brand')
+      setSettingsDraft((current) => ({ ...current, [settingsField]: url }))
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Asset upload failed.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function submitProduct(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setBusy(true)
-    setError('')
-    setSuccess('')
-    try {
-      const colors: ProductColor[] = draft.colors.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
-        const [name, hex = '#888888'] = line.split(':')
-        return { name: name.trim(), hex: hex.trim() }
-      })
-      await onSaveProduct({
-        id: editingId ?? crypto.randomUUID(),
-        name: draft.name.trim(),
-        description: draft.description.trim(),
-        price: Number(draft.price),
-        category: draft.category.trim(),
-        image_url: draft.image_url.trim(),
-        sizes: draft.sizes.split(',').map((size) => size.trim()).filter(Boolean),
-        colors,
-        active: true,
-      })
-      setSuccess(editingId ? 'Product updated.' : 'Product added to the shop.')
-      cancelEdit()
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Could not save product.')
     } finally {
       setBusy(false)
     }
@@ -127,13 +68,12 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
     try {
       await onDeleteProduct(product.id)
       setSuccess('Product removed.')
-      if (editingId === product.id) cancelEdit()
+      if (editingProduct?.id === product.id) setEditingProduct(null)
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Could not remove product.')
     }
   }
 
-  const updateProduct = (field: keyof ProductForm, value: string) => setDraft((current) => ({ ...current, [field]: value }))
   const updateSetting = <K extends keyof StoreSettings>(field: K, value: StoreSettings[K]) => setSettingsDraft((current) => ({ ...current, [field]: value }))
 
   return (
@@ -143,6 +83,7 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
         <div className="admin-brand"><span className="brand-mark">t.</span><div><strong>trythrifty</strong><small>STORE MANAGEMENT</small></div></div>
         <nav aria-label="Admin sections">
           <button className={section === 'products' ? 'active' : ''} onClick={() => setSection('products')}><PackagePlus size={17} /> Products <span>{products.length}</span></button>
+          <button className={section === 'product-types' ? 'active' : ''} onClick={() => setSection('product-types')}><Settings2 size={17} /> Product Types <span>{productTypes.length}</span></button>
           <button className={section === 'brand' ? 'active' : ''} onClick={() => setSection('brand')}><Settings2 size={17} /> Brand & storefront</button>
         </nav>
         <div className="admin-sidebar-note"><span className="status-dot" /> Changes publish to your storefront when saved.</div>
@@ -152,37 +93,38 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
         {error && <div className="admin-alert error" role="alert">{error}</div>}
         {success && <div className="admin-alert success" role="status">{success}</div>}
 
-        {section === 'products' ? (
+        {section === 'product-types' ? (
+          <ProductTypesPanel
+            productTypes={productTypes}
+            productCounts={products.reduce<Record<string, number>>((counts, product) => {
+              if (product.type_id) counts[product.type_id] = (counts[product.type_id] ?? 0) + 1
+              return counts
+            }, {})}
+            onSave={onSaveProductType}
+            onDelete={onDeleteProductType}
+          />
+        ) : section === 'products' ? (
           <>
-            <div className="admin-title-row"><div><span className="eyebrow">YOUR INVENTORY</span><h1>Products</h1><p className="muted">Add one-off pre-loved finds. Nothing is listed until you add it.</p></div><span className="count-pill">{products.length} listed</span></div>
+            <div className="admin-title-row"><div><span className="eyebrow">YOUR SHOP</span><h1>Products</h1><p className="muted">Add a product or edit something already listed.</p></div><span className="count-pill">{products.length} products</span></div>
             <div className="admin-grid">
-              <form className="admin-card stack-form" onSubmit={submitProduct}>
-                <div className="card-title"><h2>{editingId ? 'Edit product' : 'Add a product'}</h2><PackagePlus size={18} /></div>
-                <label>Product name<input required maxLength={120} value={draft.name} onChange={(e) => updateProduct('name', e.target.value)} /></label>
-                <div className="form-row">
-                  <label>Price (INR)<input type="number" min="0" step="0.01" required value={draft.price} onChange={(e) => updateProduct('price', e.target.value)} /></label>
-                  <label>Category<input required placeholder="e.g. jackets" value={draft.category} onChange={(e) => updateProduct('category', e.target.value)} /></label>
-                </div>
-                <label>Description<textarea rows={3} value={draft.description} onChange={(e) => updateProduct('description', e.target.value)} /></label>
-                <label>Sizes <span className="label-hint">comma separated; leave empty for one size</span><input placeholder="S, M, L" value={draft.sizes} onChange={(e) => updateProduct('sizes', e.target.value)} /></label>
-                <label>Colours <span className="label-hint">one per line: name: #hex</span><textarea rows={2} placeholder={'Vintage blue: #435a77'} value={draft.colors} onChange={(e) => updateProduct('colors', e.target.value)} /></label>
-                <label>Product image URL<input type="url" required placeholder="https://…" value={draft.image_url} onChange={(e) => updateProduct('image_url', e.target.value)} /></label>
-                <label className="upload-button"><ImagePlus size={15} /> Upload product image<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'products')} /></label>
-                {draft.image_url && <img className="admin-image-preview" src={draft.image_url} alt="Product preview" />}
-                <div className="form-actions">
-                  <button className="button button-primary" disabled={busy}>{busy ? <LoaderCircle className="spin" size={16} /> : <Save size={15} />}{editingId ? 'Save changes' : 'Add product'}</button>
-                  {editingId && <button type="button" className="button button-quiet" onClick={cancelEdit}>Cancel</button>}
-                </div>
-              </form>
+              <ProductEditor
+                key={editingProduct?.id ?? 'new-product'}
+                productTypes={productTypes}
+                product={editingProduct ?? undefined}
+                onSave={onSaveProduct}
+                onCancel={() => setEditingProduct(null)}
+                onCreateType={() => setSection('product-types')}
+                onSaved={setSuccess}
+              />
 
               <div className="admin-card inventory-card">
-                <div className="card-title"><h2>Live inventory</h2><span>{products.length} items</span></div>
+                <div className="card-title"><h2>Your products</h2><span>{products.length} items</span></div>
                 {products.length === 0 ? <div className="admin-empty"><PackagePlus size={26} /><strong>No products yet</strong><p>Add your first piece using the form.</p></div> : (
                   <div className="inventory-list">{products.map((product) => (
                     <article className="inventory-item" key={product.id}>
-                      <img src={product.image_url} alt="" />
+                      {product.image_url && <img src={product.image_url} alt="" />}
                       <div className="inventory-detail"><strong>{product.name}</strong><span>{product.category} · ₹{product.price.toLocaleString('en-IN')}</span></div>
-                      <button className="icon-button" title="Edit product" onClick={() => startEdit(product)}>Edit</button>
+                      <button className="icon-button" title={`Edit ${product.name}`} onClick={() => startEdit(product)}>Edit</button>
                       <button className="icon-button danger-button" title="Remove product" onClick={() => void deleteProduct(product)}><Trash2 size={15} /></button>
                     </article>
                   ))}</div>
@@ -201,10 +143,10 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
                 <label>Page background<input type="color" value={settingsDraft.background_color} onChange={(e) => updateSetting('background_color', e.target.value)} /></label>
               </div>
               <label>Logo image URL<input type="url" placeholder="https://…" value={settingsDraft.logo_url} onChange={(e) => updateSetting('logo_url', e.target.value)} /></label>
-              <label className="upload-button"><ImagePlus size={15} /> Upload logo<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'logo_url')} /></label>
+              <label className="upload-button"><ImagePlus size={15} /> Upload logo<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'logo_url')} /></label>
               {settingsDraft.logo_url && <img className="brand-image-preview" src={settingsDraft.logo_url} alt="Logo preview" />}
               <label>Favicon URL<input type="url" placeholder="https://…" value={settingsDraft.favicon_url} onChange={(e) => updateSetting('favicon_url', e.target.value)} /></label>
-              <label className="upload-button"><ImagePlus size={15} /> Upload favicon<input type="file" accept="image/*,.ico" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'favicon_url')} /></label>
+              <label className="upload-button"><ImagePlus size={15} /> Upload favicon<input type="file" accept="image/*,.ico" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'favicon_url')} /></label>
               <label>WhatsApp number <span className="label-hint">country code + number, digits only; India: 91…</span><input inputMode="tel" placeholder="919876543210" value={settingsDraft.whatsapp_number} onChange={(e) => updateSetting('whatsapp_number', e.target.value)} /></label>
               <div className="settings-divider" />
               <div className="card-title"><h2>Navigation & search</h2></div>
@@ -225,7 +167,7 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
                 <label>Second feature<input value={settingsDraft.hero_feature_two} onChange={(e) => updateSetting('hero_feature_two', e.target.value)} /></label>
               </div>
               <label>Hero image URL<input type="url" placeholder="https://…" value={settingsDraft.hero_image_url} onChange={(e) => updateSetting('hero_image_url', e.target.value)} /></label>
-              <label className="upload-button"><ImagePlus size={15} /> Upload hero image<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'hero_image_url')} /></label>
+              <label className="upload-button"><ImagePlus size={15} /> Upload hero image<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'hero_image_url')} /></label>
               {settingsDraft.hero_image_url && <img className="brand-image-preview" src={settingsDraft.hero_image_url} alt="Hero preview" />}
               <label>Hero artwork label<input value={settingsDraft.hero_art_eyebrow} onChange={(e) => updateSetting('hero_art_eyebrow', e.target.value)} /></label>
               <label>Hero artwork title <span className="label-hint">line breaks are preserved</span><textarea rows={2} value={settingsDraft.hero_art_title} onChange={(e) => updateSetting('hero_art_title', e.target.value)} /></label>

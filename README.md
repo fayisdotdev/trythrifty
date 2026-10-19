@@ -14,6 +14,7 @@ A React + Vite storefront inspired by the supplied dark, editorial fashion-store
    - `sql/03-storefront-settings.sql` — editable logo, colours, copy, and WhatsApp details.
    - `sql/04-brand-and-product-assets.sql` — public asset delivery and admin-only uploads.
    - `sql/06-storefront-content.sql` — editable navigation, homepage sections, artwork, empty-state messages, and footer content.
+   - `sql/07-dynamic-product-types.sql` — product types, per-product attributes, shared photos, and color variants. This additively maps existing products to Clothes and copies their current colors/images; review this file before running it.
 6. Start the app with `npm run dev`.
 7. Create an account through the storefront and confirm its email if confirmation is enabled in Supabase Auth.
 8. Replace the email in `sql/05-promote-store-admin.sql` with that account's email, then run the file manually in the SQL Editor. The profile's role will become `admin`.
@@ -30,4 +31,5 @@ Every application table uses the `trythrifty_` prefix. SQL modules are split by 
 - Prices use Indian rupees (INR).
 - The bag can be shared to WhatsApp with selected product names, sizes, colours, quantities, and the bag total. Set the store WhatsApp number under **Brand & storefront**; visitors can enter a number if one is not set.
 - Products, categories, logo, favicon, colours, homepage copy, section labels, hero artwork/image, empty-state messages, and footer content come from admin-managed Supabase data. There are no seeded/sample products or local storefront fallbacks.
+- Product types and their field definitions are managed from **Product Types** in `/#admin`. Product-specific values are stored in `trythrifty_products.attributes`; color variants and their photo paths are stored in `trythrifty_product_variants`.
 - Uploaded images use the public `trythrifty-assets` bucket. Keep Supabase RLS policies enabled.
