@@ -1,6 +1,15 @@
 import type { Product, ProductFieldDefinition, ProductType, ProductVariant, StoreSettings } from '../types'
 import { supabase } from './supabase'
 
+export function productSalePrice(product: Pick<Product, 'price' | 'discount_price'>): number {
+  return product.discount_price !== null
+    && product.discount_price !== undefined
+    && product.discount_price >= 0
+    && product.discount_price < product.price
+    ? product.discount_price
+    : product.price
+}
+
 export async function loadStorefront(): Promise<{ products: Product[]; productTypes: ProductType[]; settings: StoreSettings }> {
   if (!supabase) throw new Error('Connect Supabase before loading storefront content.')
 
@@ -38,6 +47,8 @@ export async function loadStorefront(): Promise<{ products: Product[]; productTy
       return {
         ...product,
         attributes: product.attributes ?? {},
+        status: product.status ?? (product.active ? 'published' : 'draft'),
+        tags: product.tags ?? [],
         common_images: product.common_images?.length ? product.common_images : [product.image_url].filter(Boolean),
         variants,
         colors: variants.length
@@ -58,7 +69,11 @@ export function validateProductAttributes(
   for (const field of fields) {
     if (field.hidden) continue
     const value = attributes[field.key]
-    const empty = value === undefined || value === null || value === '' || (typeof value === 'string' && !value.trim())
+    const empty = value === undefined
+      || value === null
+      || value === ''
+      || (typeof value === 'string' && !value.trim())
+      || (Array.isArray(value) && value.length === 0)
     if (field.required && empty) {
       errors.push(`${field.label} is required.`)
       continue
@@ -76,6 +91,11 @@ export function validateProductAttributes(
         break
       case 'select':
         if (typeof value !== 'string' || !field.options?.includes(value)) errors.push(`${field.label} must be one of its listed options.`)
+        break
+      case 'multi_select':
+        if (!Array.isArray(value) || value.some((option) => typeof option !== 'string' || !field.options?.includes(option))) {
+          errors.push(`${field.label} contains an invalid option.`)
+        }
         break
       case 'color':
         if (typeof value !== 'string' || !value.trim()

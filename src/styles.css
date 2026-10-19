@@ -113,6 +113,7 @@ a { color: inherit; text-decoration: none; }
 .product-category { color: var(--accent); font: 9px var(--mono); text-transform: uppercase; letter-spacing: .12em; }
 .product-heading h3 { margin: 5px 0 0; font-size: 14px; }
 .product-heading > strong { flex-shrink: 0; padding-top: 15px; font-size: 12px; }
+.product-heading > strong del { display: block; color: #85827c; font-size: 9px; font-weight: 400; }
 .product-description { min-height: 34px; margin: 11px 0; color: #97958f; font-size: 11px; line-height: 1.55; }
 .product-options { display: flex; gap: 9px; }
 .product-options label { display: flex; align-items: center; gap: 7px; color: #85837f; font-size: 9px; }
@@ -238,9 +239,10 @@ a { color: inherit; text-decoration: none; }
 .admin-title-row p { margin: 0; font-size: 11px; }
 .count-pill { padding: 7px 10px; color: #bbb8b0; border: 1px solid var(--line); border-radius: 20px; font: 9px var(--mono); }
 .admin-grid { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(300px, 1.1fr); align-items: start; gap: 17px; }
+.admin-products-layout { display: grid; gap: 17px; }
 .admin-card { min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: 9px; background: #131315; }
 .admin-card.stack-form { gap: 13px; }
-.product-editor { max-width: 520px; }
+.product-editor { max-width: 760px; }
 .optional-product-section { padding-top: 11px; border-top: 1px solid var(--line); }
 .optional-product-section summary { display: flex; justify-content: space-between; color: #ddd9d1; cursor: pointer; font-size: 10px; list-style-position: inside; }
 .optional-product-section summary span { color: #85827c; font-size: 9px; }
@@ -251,6 +253,16 @@ a { color: inherit; text-decoration: none; }
 .card-title h2 { margin: 0; color: #efede8; font-size: 13px; }
 .card-title > span { color: #888; font: 9px var(--mono); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.product-field-wrap { display: grid; gap: 5px; }
+.inline-error { color: #ff9586; font-size: 9px; }
+.compatibility-notice { padding: 8px 10px; margin: 0; color: #e8c47d; background: rgba(245,158,11,.08); border-radius: 5px; font-size: 9px; }
+.form-error-list { padding: 9px 11px; display: grid; gap: 4px; color: #ffaca0; background: rgba(214,65,48,.1); border-radius: 6px; font-size: 10px; }
+.form-error-list p { margin: 0; }
+.form-actions-wrap { flex-wrap: wrap; }
+.multi-select-field { min-width: 0; margin: 0; padding: 10px; border: 1px solid rgba(255,255,255,.13); border-radius: 6px; }
+.multi-select-field legend { padding: 0 5px; color: #d3d0ca; font-size: 10px; }
+.multi-select-options { display: flex; flex-wrap: wrap; gap: 9px 15px; }
+.multi-select-field .inline-toggle { text-transform: uppercase; }
 .label-hint { color: #777; font-size: 9px; font-weight: 400; }
 .inline-toggle { display: inline-flex; align-items: center; gap: 7px; color: #d3d0ca; font-size: 10px; }
 .inline-toggle input[type="checkbox"] { width: auto; min-height: 0; accent-color: var(--accent); }
@@ -259,7 +271,9 @@ a { color: inherit; text-decoration: none; }
 .admin-image-preview { width: 90px; height: 100px; object-fit: cover; border: 1px solid var(--line); border-radius: 5px; }
 .image-preview-list { display: flex; flex-wrap: wrap; gap: 9px; }
 .image-preview-item { position: relative; }
-.image-preview-item .icon-button { position: absolute; top: 4px; right: 4px; padding: 4px; background: rgba(10,10,12,.88); }
+.photo-controls { padding-top: 5px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+.photo-controls .icon-button { min-height: 25px; padding: 3px; font-size: 8px; }
+.photo-cover { display: inline-flex; align-items: center; gap: 2px; padding: 3px 4px; color: #8de7a5; font-size: 8px; }
 .variant-editor { min-width: 0; padding: 13px; display: grid; gap: 11px; border: 1px solid var(--line); border-radius: 7px; }
 .variant-editor legend { padding: 0 5px; color: var(--accent); font-size: 10px; }
 .variant-editor label { min-width: 0; display: flex; flex-direction: column; gap: 6px; color: #d3d0ca; font-size: 9px; }
@@ -367,6 +381,7 @@ a { color: inherit; text-decoration: none; }
   .admin-topbar { min-height: 55px; }
   .admin-content { padding: 0 17px 45px; }
   .admin-title-row { margin: 25px 0 18px; }
+  .product-editor { max-width: none; }
 }
 @media (max-width: 520px) {
   .nav-actions { gap: 4px; }

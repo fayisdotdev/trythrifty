@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react'
 import type { CartItem } from '../types'
+import { productSalePrice } from '../lib/catalog'
 
 type CartDrawerProps = {
   open: boolean
@@ -14,13 +15,13 @@ type CartDrawerProps = {
 
 export default function CartDrawer({ open, items, whatsappNumber, onClose, onQuantity, onRemove, formatPrice }: CartDrawerProps) {
   const [number, setNumber] = useState(whatsappNumber)
-  const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const total = items.reduce((sum, item) => sum + productSalePrice(item.product) * item.quantity, 0)
   const count = items.reduce((sum, item) => sum + item.quantity, 0)
 
   function shareBag() {
     const destination = (whatsappNumber || number).replace(/\D/g, '')
     const lines = items.map(({ product, quantity, size, color }) =>
-      `• ${product.name} — ${quantity} × ${formatPrice(product.price)}${size ? ` | Size: ${size}` : ''}${color ? ` | Colour: ${color}` : ''}`,
+      `• ${product.name} — ${quantity} × ${formatPrice(productSalePrice(product))}${size ? ` | Size: ${size}` : ''}${color ? ` | Colour: ${color}` : ''}`,
     )
     const text = `Hi! I'd like to enquire about these trythrifty finds:\n\n${lines.join('\n')}\n\nTotal: ${formatPrice(total)}`
     const url = `https://wa.me/${destination}?text=${encodeURIComponent(text)}`
@@ -42,7 +43,7 @@ export default function CartDrawer({ open, items, whatsappNumber, onClose, onQua
               <div className="cart-item-details">
                 <h3>{item.product.name}</h3>
                 <p>{[item.size, item.color].filter(Boolean).join(' · ')}</p>
-                <strong>{formatPrice(item.product.price * item.quantity)}</strong>
+                <strong>{formatPrice(productSalePrice(item.product) * item.quantity)}</strong>
                 <div className="quantity-control">
                   <button aria-label="Decrease quantity" onClick={() => onQuantity(index, -1)}><Minus size={13} /></button>
                   <span>{item.quantity}</span>

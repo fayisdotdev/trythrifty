@@ -15,6 +15,7 @@ A React + Vite storefront inspired by the supplied dark, editorial fashion-store
    - `sql/04-brand-and-product-assets.sql` — public asset delivery and admin-only uploads.
    - `sql/06-storefront-content.sql` — editable navigation, homepage sections, artwork, empty-state messages, and footer content.
    - `sql/07-dynamic-product-types.sql` — product types, per-product attributes, shared photos, and color variants. This additively maps existing products to Clothes and copies their current colors/images; review this file before running it.
+   - `sql/08-product-management-fields.sql` — discount price, stock, SKU, tags, and draft/published status. Run after module 07.
 6. Start the app with `npm run dev`.
 7. Create an account through the storefront and confirm its email if confirmation is enabled in Supabase Auth.
 8. Replace the email in `sql/05-promote-store-admin.sql` with that account's email, then run the file manually in the SQL Editor. The profile's role will become `admin`.

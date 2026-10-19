@@ -6,6 +6,7 @@ import CartDrawer from './components/CartDrawer'
 import ProductCard from './components/ProductCard'
 import { loadStorefront } from './lib/catalog'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { fieldsForProductType } from './config/productSchemas'
 import type { CartItem, Product, ProductFieldDefinition, ProductType, StoreSettings } from './types'
 
 export default function App() {
@@ -103,19 +104,20 @@ export default function App() {
     return () => window.clearTimeout(timeout)
   }, [toast])
 
-  const categories = useMemo(() => [...new Set(products.map((product) => product.category).filter(Boolean))], [products])
+  const publishedProducts = useMemo(() => products.filter((product) => product.active), [products])
+  const categories = useMemo(() => [...new Set(publishedProducts.map((product) => product.category).filter(Boolean))], [publishedProducts])
   const productFilters = useMemo(() => productTypes.flatMap((productType) =>
-    productType.fields
+    fieldsForProductType(productType.name, productType.fields)
       .filter((field) => !field.hidden && (field.type === 'select' || field.type === 'boolean'))
-      .filter((field) => products.some((product) => product.type_id === productType.id && product.attributes?.[field.key] !== undefined))
+      .filter((field) => publishedProducts.some((product) => product.type_id === productType.id && product.attributes?.[field.key] !== undefined))
       .map((field: ProductFieldDefinition) => ({
         id: `${productType.id}:${field.key}`,
         typeId: productType.id,
         field,
         options: field.type === 'boolean' ? ['true', 'false'] : (field.options ?? []),
       })),
-  ), [productTypes, products])
-  const visibleProducts = useMemo(() => products.filter((product) => {
+  ), [productTypes, publishedProducts])
+  const visibleProducts = useMemo(() => publishedProducts.filter((product) => {
     const categoryMatches = category === 'all' || product.category === category
     const searchMatches = `${product.name} ${product.description} ${product.category} ${Object.values(product.attributes ?? {}).join(' ')}`.toLowerCase().includes(search.toLowerCase())
     const attributesMatch = productFilters.every(({ id, typeId, field }) => {
@@ -123,8 +125,8 @@ export default function App() {
       if (!selected || product.type_id !== typeId) return true
       return String(product.attributes?.[field.key]) === selected
     })
-    return categoryMatches && searchMatches && attributesMatch
-  }), [products, category, search, productFilters, attributeFilters])
+    return product.active && categoryMatches && searchMatches && attributesMatch
+  }), [publishedProducts, category, search, productFilters, attributeFilters])
   const count = cart.reduce((sum, item) => sum + item.quantity, 0)
   const formatPrice = (value: number) => new Intl.NumberFormat('en-IN', {
     style: 'currency', currency: 'INR', maximumFractionDigits: 0,
@@ -297,7 +299,7 @@ export default function App() {
         </section>
 
         <section className="collection-section" id="collection">
-          <div className="section-topline"><span className="eyebrow">{settings.collection_eyebrow}</span><span className="inventory-caption">{products.length} {products.length === 1 ? settings.collection_item_label : settings.collection_items_label} listed</span></div>
+          <div className="section-topline"><span className="eyebrow">{settings.collection_eyebrow}</span><span className="inventory-caption">{publishedProducts.length} {publishedProducts.length === 1 ? settings.collection_item_label : settings.collection_items_label} listed</span></div>
           <div className="collection-heading"><div><h2>{settings.collection_title}<br /><em>{settings.collection_title_emphasis}</em></h2><p>{settings.collection_description}</p></div>
             <div className="collection-filter">
               {['all', ...categories].map((item) => <button key={item} className={category === item ? 'selected' : ''} onClick={() => setCategory(item)}>{item === 'all' ? settings.collection_all_label : item}</button>)}

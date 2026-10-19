@@ -1,7 +1,8 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import { Plus } from 'lucide-react'
 import type { Product, ProductFieldDefinition, ProductType } from '../types'
-import { publicAssetUrl } from '../lib/catalog'
+import { productSalePrice, publicAssetUrl } from '../lib/catalog'
+import { fieldsForProductType, productTypeLabel } from '../config/productSchemas'
 
 type ProductCardProps = {
   product: Product
@@ -25,6 +26,7 @@ export default function ProductCard({ product, productType, formatPrice, onAdd }
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [imageOverride, setImageOverride] = useState('')
   const selectedVariant = product.variants?.find((variant) => variant.color_name === color)
+  const salePrice = productSalePrice(product)
   const image = imageOverride || (selectedVariant?.images[0]
     ? publicAssetUrl(selectedVariant.images[0])
     : product.common_images?.[0] ?? product.image_url)
@@ -32,7 +34,7 @@ export default function ProductCard({ product, productType, formatPrice, onAdd }
     ...(product.common_images ?? [product.image_url]),
     ...(selectedVariant?.images ?? []).map(publicAssetUrl),
   ].filter(Boolean))]
-  const details = useMemo(() => (productType?.fields ?? [])
+  const details = useMemo(() => (productType ? fieldsForProductType(productType.name, productType.fields) : [])
     .filter((field) => !field.hidden)
     .map((field) => ({ field, value: displayAttribute(field, product.attributes?.[field.key]) }))
     .filter(({ value }) => value !== ''), [productType, product.attributes])
@@ -41,7 +43,7 @@ export default function ProductCard({ product, productType, formatPrice, onAdd }
     <article className="product-card">
       <div className="product-image-wrap">
         {image ? <img src={image} alt={product.name} loading="lazy" /> : <div className="product-photo-placeholder">Photo coming soon</div>}
-        <span className="product-tag">{productType?.name ?? 'PRE-LOVED FIND'}</span>
+        <span className="product-tag">{productType ? productTypeLabel(productType.name) : 'PRE-LOVED FIND'}</span>
         <button className="quick-add" onClick={() => onAdd(product, size, color)} aria-label={`Add ${product.name} to bag`}>
           <Plus size={18} />
         </button>
@@ -49,7 +51,9 @@ export default function ProductCard({ product, productType, formatPrice, onAdd }
       <div className="product-info">
         <div className="product-heading">
           <div><span className="product-category">{product.category}</span><h3>{product.name}</h3></div>
-          <strong>{formatPrice(product.price)}</strong>
+          <strong>{salePrice < product.price
+            ? <><del>{formatPrice(product.price)}</del> {formatPrice(salePrice)}</>
+            : formatPrice(product.price)}</strong>
         </div>
         {product.description && <p className="product-description">{product.description}</p>}
         {details.length > 0 && <button type="button" className="product-detail-toggle" aria-expanded={detailsOpen} onClick={() => setDetailsOpen((open) => !open)}>

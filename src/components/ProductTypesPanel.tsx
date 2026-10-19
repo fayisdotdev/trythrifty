@@ -88,8 +88,8 @@ export default function ProductTypesPanel({ productTypes, productCounts, onSave,
       setError('Every field needs a label.')
       return
     }
-    if (fields.some((field) => field.type === 'select' && !(field.options ?? []).some((option) => option.trim()))) {
-      setError('Select fields need at least one option.')
+    if (fields.some((field) => (field.type === 'select' || field.type === 'multi_select') && !(field.options ?? []).some((option) => option.trim()))) {
+      setError('Choice fields need at least one option.')
       return
     }
     setBusy(true)
@@ -102,7 +102,9 @@ export default function ProductTypesPanel({ productTypes, productCounts, onSave,
         fields: fields.map((field) => ({
           ...field,
           label: field.label.trim(),
-          options: field.type === 'select' ? (field.options ?? []).filter((option) => option.trim()) : undefined,
+          options: field.type === 'select' || field.type === 'multi_select'
+            ? (field.options ?? []).filter((option) => option.trim())
+            : undefined,
           unit: field.unit?.trim() || undefined,
         })),
       })
@@ -152,12 +154,15 @@ export default function ProductTypesPanel({ productTypes, productCounts, onSave,
                   <label>Key<input value={field.key} readOnly aria-label={`${field.label} key`} /></label>
                 </div>
                 <div className="form-row">
-                  <label>Field type<select disabled={locked} value={field.type} onChange={(event) => updateField(index, { type: event.target.value as ProductFieldType, options: event.target.value === 'select' ? field.options ?? [''] : undefined })}>
-                    {(['text', 'number', 'boolean', 'select', 'color'] as ProductFieldType[]).map((type) => <option key={type} value={type}>{type}</option>)}
+                  <label>Field type<select disabled={locked} value={field.type} onChange={(event) => {
+                    const type = event.target.value as ProductFieldType
+                    updateField(index, { type, options: type === 'select' || type === 'multi_select' ? field.options ?? [''] : undefined })
+                  }}>
+                    {(['text', 'number', 'boolean', 'select', 'multi_select', 'color'] as ProductFieldType[]).map((type) => <option key={type} value={type}>{type === 'multi_select' ? 'multiple choice' : type}</option>)}
                   </select></label>
                   <label>Unit (optional)<input disabled={locked} value={field.unit ?? ''} onChange={(event) => updateField(index, { unit: event.target.value })} /></label>
                 </div>
-                {field.type === 'select' && <label>Options <span className="label-hint">one option per line</span><textarea disabled={locked} rows={3} value={(field.options ?? []).join('\n')} onChange={(event) => updateField(index, { options: event.target.value.split('\n') })} /></label>}
+                {(field.type === 'select' || field.type === 'multi_select') && <label>Options <span className="label-hint">one option per line</span><textarea disabled={locked} rows={3} value={(field.options ?? []).join('\n')} onChange={(event) => updateField(index, { options: event.target.value.split('\n') })} /></label>}
                 <div className="field-controls">
                   <label className="inline-toggle"><input type="checkbox" disabled={locked} checked={field.required} onChange={(event) => updateField(index, { required: event.target.checked })} /> Required</label>
                   <label className="inline-toggle"><input type="checkbox" checked={Boolean(field.hidden)} onChange={(event) => updateField(index, { hidden: event.target.checked })} /> Hidden</label>

@@ -3,7 +3,7 @@ export type ProductColor = {
   hex: string
 }
 
-export type ProductFieldType = 'text' | 'number' | 'boolean' | 'select' | 'color'
+export type ProductFieldType = 'text' | 'number' | 'boolean' | 'select' | 'multi_select' | 'color'
 
 export type ProductFieldDefinition = {
   key: string
@@ -36,6 +36,11 @@ export type Product = {
   name: string
   description: string
   price: number
+  discount_price?: number | null
+  stock_quantity?: number
+  sku?: string | null
+  tags?: string[]
+  status?: 'draft' | 'published'
   category: string
   type_id?: string | null
   attributes?: Record<string, unknown>

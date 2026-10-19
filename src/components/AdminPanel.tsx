@@ -106,7 +106,7 @@ export default function AdminPanel({ products, productTypes, settings, onBack, o
         ) : section === 'products' ? (
           <>
             <div className="admin-title-row"><div><span className="eyebrow">YOUR SHOP</span><h1>Products</h1><p className="muted">Add a product or edit something already listed.</p></div><span className="count-pill">{products.length} products</span></div>
-            <div className="admin-grid">
+            <div className="admin-products-layout">
               <ProductEditor
                 key={editingProduct?.id ?? 'new-product'}
                 productTypes={productTypes}
@@ -123,7 +123,7 @@ export default function AdminPanel({ products, productTypes, settings, onBack, o
                   <div className="inventory-list">{products.map((product) => (
                     <article className="inventory-item" key={product.id}>
                       {product.image_url && <img src={product.image_url} alt="" />}
-                      <div className="inventory-detail"><strong>{product.name}</strong><span>{product.category} · ₹{product.price.toLocaleString('en-IN')}</span></div>
+                      <div className="inventory-detail"><strong>{product.name}</strong><span>{product.status ?? (product.active ? 'Published' : 'Draft')} · {product.category} · ₹{product.price.toLocaleString('en-IN')}</span></div>
                       <button className="icon-button" title={`Edit ${product.name}`} onClick={() => startEdit(product)}>Edit</button>
                       <button className="icon-button danger-button" title="Remove product" onClick={() => void deleteProduct(product)}><Trash2 size={15} /></button>
                     </article>
