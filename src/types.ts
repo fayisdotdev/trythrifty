@@ -16,10 +16,15 @@ export type Product = {
   created_at?: string
 }
 
+export type StoreTheme = 'light' | 'dark'
+
 export type StoreSettings = {
   id: number
   store_name: string
+  theme: StoreTheme | null
   logo_url: string
+  logo_light_url: string | null
+  logo_dark_url: string | null
   favicon_url: string
   accent_color: string
   background_color: string

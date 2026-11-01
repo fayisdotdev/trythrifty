@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { ArrowDown, ArrowRight, Check, Heart, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowDown, ArrowRight, Check, Heart, Menu, Moon, Search, ShoppingBag, Sun, UserRound, X } from 'lucide-react'
 import AdminPanel from './components/AdminPanel'
+import AccountMenu from './components/AccountMenu'
 import AuthModal from './components/AuthModal'
 import CartDrawer from './components/CartDrawer'
 import ProductCard from './components/ProductCard'
@@ -9,6 +10,10 @@ import { isSupabaseConfigured, supabase } from './lib/supabase'
 import type { CartItem, Product, StoreSettings } from './types'
 
 export default function App() {
+  const [localTheme, setLocalTheme] = useState<'light' | 'dark' | null>(() => {
+    const savedTheme = window.localStorage.getItem('trythrifty-theme-preference')
+    return savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null
+  })
   const [products, setProducts] = useState<Product[]>([])
   const [settings, setSettings] = useState<StoreSettings | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
@@ -16,6 +21,8 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false)
   const [isAdminPage, setIsAdminPage] = useState(window.location.hash === '#admin')
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [profileName, setProfileName] = useState('User')
+  const [profileTheme, setProfileTheme] = useState<'light' | 'dark' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -58,15 +65,20 @@ export default function App() {
       setUserEmail(user?.email ?? null)
       if (!user) {
         setIsAdmin(false)
+        setProfileName('User')
+        setProfileTheme(null)
         return
       }
-      void client.from('trythrifty_profiles').select('role').eq('id', user.id).maybeSingle()
+      setProfileTheme(null)
+      void client.from('trythrifty_profiles').select('role, display_name, theme_preference').eq('id', user.id).maybeSingle()
         .then(({ data, error }) => {
           if (error) {
             setLoadError(`Could not check account permissions: ${error.message}`)
             setIsAdmin(false)
           } else {
             setIsAdmin(data?.role === 'admin')
+            setProfileName(data?.display_name?.trim() || 'User')
+            setProfileTheme(data?.theme_preference === 'light' || data?.theme_preference === 'dark' ? data.theme_preference : null)
           }
         })
     })
@@ -79,8 +91,6 @@ export default function App() {
 
   useEffect(() => {
     if (!settings) return
-    document.documentElement.style.setProperty('--accent', settings.accent_color)
-    document.documentElement.style.setProperty('--page', settings.background_color)
     document.title = settings.store_name
     if (settings.favicon_url) {
       let icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
@@ -106,6 +116,12 @@ export default function App() {
     return categoryMatches && searchMatches
   }), [products, category, search])
   const count = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const storefrontTheme = userEmail
+    ? profileTheme ?? (settings?.theme === 'dark' ? 'dark' : 'light')
+    : localTheme ?? (settings?.theme === 'dark' ? 'dark' : 'light')
+  const storefrontLogoUrl = storefrontTheme === 'dark'
+    ? (settings?.logo_dark_url ?? settings?.logo_url?.trim()) || `${import.meta.env.BASE_URL}logos/try-thrifty-primary-white.png`
+    : (settings?.logo_light_url ?? settings?.logo_url?.trim()) || `${import.meta.env.BASE_URL}logos/try-thrifty-primary-black.png`
   const formatPrice = (value: number) => new Intl.NumberFormat('en-IN', {
     style: 'currency', currency: 'INR', maximumFractionDigits: 0,
   }).format(value)
@@ -143,10 +159,49 @@ export default function App() {
     const { data } = await supabase.auth.getUser()
     setUserEmail(data.user?.email ?? null)
     if (data.user) {
-      const { data: profile, error } = await supabase.from('trythrifty_profiles').select('role').eq('id', data.user.id).maybeSingle()
+      const { data: profile, error } = await supabase.from('trythrifty_profiles').select('role, display_name, theme_preference').eq('id', data.user.id).maybeSingle()
       if (error) setLoadError(`Could not check account permissions: ${error.message}`)
       setIsAdmin(profile?.role === 'admin')
+      setProfileName(profile?.display_name?.trim() || 'User')
+      setProfileTheme(profile?.theme_preference === 'light' || profile?.theme_preference === 'dark' ? profile.theme_preference : null)
     }
+  }
+
+  async function toggleTheme() {
+    const nextTheme = storefrontTheme === 'dark' ? 'light' : 'dark'
+    if (userEmail && supabase) {
+      const { data, error: userError } = await supabase.auth.getUser()
+      if (userError || !data.user) {
+        setLoadError(`Could not save your theme preference: ${userError?.message ?? 'Sign in again and retry.'}`)
+        return
+      }
+      const { error } = await supabase
+        .from('trythrifty_profiles')
+        .update({ theme_preference: nextTheme })
+        .eq('id', data.user.id)
+      if (error) {
+        setLoadError(`Could not save your theme preference: ${error.message}`)
+        return
+      }
+      setProfileTheme(nextTheme)
+      window.localStorage.setItem('trythrifty-theme-preference', nextTheme)
+      return
+    }
+
+    window.localStorage.setItem('trythrifty-theme-preference', nextTheme)
+    setLocalTheme(nextTheme)
+  }
+
+  async function saveProfileName(name: string) {
+    if (!supabase) throw new Error('Connect Supabase before editing your profile.')
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) throw new Error('Sign in before editing your profile.')
+    const { error } = await supabase
+      .from('trythrifty_profiles')
+      .update({ display_name: name })
+      .eq('id', data.user.id)
+    if (error) throw error
+    setProfileName(name)
   }
 
   async function signOut() {
@@ -155,6 +210,10 @@ export default function App() {
     if (error) setLoadError(`Sign out failed: ${error.message}`)
     else {
       setUserEmail(null)
+      setProfileName('User')
+      setProfileTheme(null)
+      setLocalTheme(null)
+      window.localStorage.removeItem('trythrifty-theme-preference')
       setIsAdmin(false)
       setIsAdminPage(false)
       window.location.hash = ''
@@ -199,21 +258,33 @@ export default function App() {
         <section className="panel gate-card"><span className="eyebrow">ACCESS RESTRICTED</span><h1>This account is not an admin.</h1><p className="muted">Sign in is working, but this account has not been promoted in the profiles table.</p><button className="button button-quiet" onClick={() => void signOut()}>Sign out</button><a className="back-link gate-back" href="#">Return to shop</a></section>
       </div>
     )
-    return <AdminPanel products={products} settings={settings} onBack={() => { window.location.hash = '' }} onSaveSettings={saveSettings} onSaveProduct={saveProduct} onDeleteProduct={deleteProduct} />
+    return <AdminPanel products={products} settings={settings} theme={settings.theme === 'dark' ? 'dark' : 'light'} onBack={() => { window.location.hash = '' }} onSaveSettings={saveSettings} onSaveProduct={saveProduct} onDeleteProduct={deleteProduct} />
   }
 
   return (
-    <div className="app-shell" style={{ '--accent': settings.accent_color, '--page': settings.background_color } as CSSProperties}>
+    <div className="app-shell" data-store-theme={storefrontTheme}>
       <header className="site-header">
         <nav className="nav-frame">
           <a className="brand" href="#top" aria-label={`${settings.store_name} home`}>
-            {settings.logo_url ? <img src={settings.logo_url} alt={settings.store_name} /> : <><span className="brand-mark">{settings.store_name.charAt(0)}.</span><span>{settings.store_name}<b>.</b></span></>}
+            <img src={storefrontLogoUrl} alt={settings.store_name} />
           </a>
           <div className="nav-links"><a href="#top">{settings.nav_home_label}</a><a href="#collection">{settings.nav_collection_label}</a><a href="#story">{settings.nav_story_label}</a></div>
           <div className="nav-actions">
             <button className="mobile-search-trigger" aria-label="Open product search" onClick={() => setMobileSearchOpen((open) => !open)}><Search size={17} /></button>
             <label className={`search-box ${mobileSearchOpen ? 'expanded' : ''}`}><Search size={16} /><input aria-label="Search products" placeholder={settings.search_placeholder} value={search} onChange={(e) => { setSearch(e.target.value); setCategory('all') }} />{search && <button type="button" aria-label="Clear search" onClick={() => setSearch('')}><X size={14} /></button>}</label>
-            {userEmail ? <button className="account-button" title={userEmail} onClick={() => void signOut()}><UserRound size={17} /><span>Sign out</span></button> : <button className="account-button" onClick={() => setAuthOpen(true)}><UserRound size={17} /><span>Account</span></button>}
+            <button className="theme-toggle" type="button" onClick={() => void toggleTheme()} aria-label={`Switch to ${storefrontTheme === 'dark' ? 'light' : 'dark'} theme`} title={`Switch to ${storefrontTheme === 'dark' ? 'light' : 'dark'} theme`}>
+              {storefrontTheme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            {userEmail
+              ? <AccountMenu
+                email={userEmail}
+                displayName={profileName}
+                isAdmin={isAdmin}
+                onOpenAdmin={() => { window.location.hash = 'admin' }}
+                onSignOut={() => void signOut()}
+                onSaveName={saveProfileName}
+              />
+              : <button className="account-button" onClick={() => setAuthOpen(true)}><UserRound size={17} /><span>Account</span></button>}
             <button className="bag-button" onClick={() => setCartOpen(true)} aria-label={`Open bag, ${count} items`}><ShoppingBag size={17} /><span>Bag</span><b>{count}</b></button>
             <button className="mobile-menu" onClick={() => document.getElementById('mobile-nav')?.classList.toggle('show')} aria-label="Toggle menu"><Menu size={20} /></button>
           </div>
@@ -270,7 +341,7 @@ export default function App() {
       </main>
 
       <footer className="site-footer">
-        <a className="brand footer-brand" href="#top">{settings.logo_url ? <img src={settings.logo_url} alt={settings.store_name} /> : <><span className="brand-mark">{settings.store_name.charAt(0)}.</span><span>{settings.store_name}<b>.</b></span></>}</a>
+        <a className="brand footer-brand" href="#top"><img src={storefrontLogoUrl} alt={settings.store_name} /></a>
         <p>{settings.footer_tagline}</p><a href="#collection">{settings.footer_collection_label} <ArrowRight size={14} /></a>
         <div className="footer-bottom"><span>© {new Date().getFullYear()} {settings.store_name}. {settings.footer_copyright}</span>{isAdmin ? <a href="#admin">Manage store <ArrowRight size={13} /></a> : userEmail ? <button onClick={() => void signOut()}>Sign out</button> : <button onClick={() => setAuthOpen(true)}>Your account</button>}</div>
       </footer>

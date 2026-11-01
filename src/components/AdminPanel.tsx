@@ -6,6 +6,7 @@ import type { Product, ProductColor, StoreSettings } from '../types'
 type AdminPanelProps = {
   products: Product[]
   settings: StoreSettings
+  theme: 'light' | 'dark'
   onBack: () => void
   onSaveSettings: (settings: StoreSettings) => Promise<void>
   onSaveProduct: (product: Product) => Promise<void>
@@ -19,12 +20,28 @@ type ProductForm = {
   category: string
   image_url: string
   sizes: string
-  colors: string
+  colors: ProductColor[]
 }
 
 const emptyProduct: ProductForm = {
-  name: '', description: '', price: '', category: '', image_url: '', sizes: '', colors: '',
+  name: '', description: '', price: '', category: '', image_url: '', sizes: '', colors: [],
 }
+
+const standardSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'One size']
+const colorPresets: ProductColor[] = [
+  { name: 'Black', hex: '#171717' },
+  { name: 'White', hex: '#f5f5f5' },
+  { name: 'Red', hex: '#e53935' },
+  { name: 'Blue', hex: '#2878c7' },
+  { name: 'Navy', hex: '#1f3a5f' },
+  { name: 'Green', hex: '#31845b' },
+  { name: 'Yellow', hex: '#f2c230' },
+  { name: 'Pink', hex: '#e88ca9' },
+  { name: 'Purple', hex: '#8055a5' },
+  { name: 'Brown', hex: '#795548' },
+  { name: 'Grey', hex: '#858585' },
+  { name: 'Beige', hex: '#d8c3a5' },
+]
 
 function productToForm(product: Product): ProductForm {
   return {
@@ -34,13 +51,14 @@ function productToForm(product: Product): ProductForm {
     category: product.category,
     image_url: product.image_url,
     sizes: product.sizes.join(', '),
-    colors: product.colors.map(({ name, hex }) => `${name}: ${hex}`).join('\n'),
+    colors: product.colors.map(({ name, hex }) => ({ name, hex })),
   }
 }
 
-export default function AdminPanel({ products, settings, onBack, onSaveSettings, onSaveProduct, onDeleteProduct }: AdminPanelProps) {
+export default function AdminPanel({ products, settings, theme, onBack, onSaveSettings, onSaveProduct, onDeleteProduct }: AdminPanelProps) {
   const [section, setSection] = useState<'products' | 'brand'>('products')
   const [draft, setDraft] = useState<ProductForm>(emptyProduct)
+  const [addingCategory, setAddingCategory] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [settingsDraft, setSettingsDraft] = useState(settings)
   const [busy, setBusy] = useState(false)
@@ -52,6 +70,7 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
   function startEdit(product: Product) {
     setDraft(productToForm(product))
     setEditingId(product.id)
+    setAddingCategory(false)
     setSection('products')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -59,9 +78,10 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
   function cancelEdit() {
     setDraft(emptyProduct)
     setEditingId(null)
+    setAddingCategory(false)
   }
 
-  async function uploadImage(file: File, folder: 'products' | 'brand', settingsField?: 'logo_url' | 'favicon_url' | 'hero_image_url') {
+  async function uploadImage(file: File, folder: 'products' | 'brand', settingsField?: 'logo_light_url' | 'logo_dark_url' | 'favicon_url' | 'hero_image_url') {
     setBusy(true)
     setError('')
     try {
@@ -81,10 +101,9 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
     setError('')
     setSuccess('')
     try {
-      const colors: ProductColor[] = draft.colors.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
-        const [name, hex = '#888888'] = line.split(':')
-        return { name: name.trim(), hex: hex.trim() }
-      })
+      const colors = draft.colors
+        .map(({ name, hex }) => ({ name: name.trim(), hex }))
+        .filter(({ name }) => name)
       await onSaveProduct({
         id: editingId ?? crypto.randomUUID(),
         name: draft.name.trim(),
@@ -133,14 +152,30 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
     }
   }
 
-  const updateProduct = (field: keyof ProductForm, value: string) => setDraft((current) => ({ ...current, [field]: value }))
+  const updateProduct = (field: Exclude<keyof ProductForm, 'colors'>, value: string) => setDraft((current) => ({ ...current, [field]: value }))
+  const updateProductColor = (index: number, patch: Partial<ProductColor>) => setDraft((current) => ({
+    ...current,
+    colors: current.colors.map((color, colorIndex) => colorIndex === index ? { ...color, ...patch } : color),
+  }))
+  const addProductColor = (color: ProductColor) => setDraft((current) => ({ ...current, colors: [...current.colors, { ...color }] }))
   const updateSetting = <K extends keyof StoreSettings>(field: K, value: StoreSettings[K]) => setSettingsDraft((current) => ({ ...current, [field]: value }))
+  const categories = [...new Map(
+    products.map((product) => product.category.trim()).filter(Boolean).map((category) => [category.toLowerCase(), category]),
+  ).values()]
+  if (draft.category.trim() && !categories.some((category) => category.toLowerCase() === draft.category.trim().toLowerCase())) categories.push(draft.category.trim())
+  categories.sort((left, right) => left.localeCompare(right))
+  const selectedSizes = draft.sizes.split(',').map((size) => size.trim()).filter(Boolean)
+  const sizeOptions = [...standardSizes, ...selectedSizes.filter((size) => !standardSizes.some((standardSize) => standardSize.toLowerCase() === size.toLowerCase()))]
+  const lightLogoUrl = (settingsDraft.logo_light_url ?? settingsDraft.logo_url?.trim())
+    || `${import.meta.env.BASE_URL}logos/try-thrifty-primary-black.png`
+  const darkLogoUrl = (settingsDraft.logo_dark_url ?? settingsDraft.logo_url?.trim())
+    || `${import.meta.env.BASE_URL}logos/try-thrifty-primary-white.png`
 
   return (
-    <main className="admin-shell">
+    <main className="admin-shell" data-store-theme={theme}>
       <aside className="admin-sidebar">
         <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> View storefront</button>
-        <div className="admin-brand"><span className="brand-mark">t.</span><div><strong>trythrifty</strong><small>STORE MANAGEMENT</small></div></div>
+        <div className="admin-brand"><img src={theme === 'dark' ? `${import.meta.env.BASE_URL}logos/try-thrifty-primary-white.png` : `${import.meta.env.BASE_URL}logos/try-thrifty-primary-black.png`} alt="trythrifty" /><div><small>STORE MANAGEMENT</small></div></div>
         <nav aria-label="Admin sections">
           <button className={section === 'products' ? 'active' : ''} onClick={() => setSection('products')}><PackagePlus size={17} /> Products <span>{products.length}</span></button>
           <button className={section === 'brand' ? 'active' : ''} onClick={() => setSection('brand')}><Settings2 size={17} /> Brand & storefront</button>
@@ -161,11 +196,90 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
                 <label>Product name<input required maxLength={120} value={draft.name} onChange={(e) => updateProduct('name', e.target.value)} /></label>
                 <div className="form-row">
                   <label>Price (INR)<input type="number" min="0" step="0.01" required value={draft.price} onChange={(e) => updateProduct('price', e.target.value)} /></label>
-                  <label>Category<input required placeholder="e.g. jackets" value={draft.category} onChange={(e) => updateProduct('category', e.target.value)} /></label>
+                  <label>Category
+                    <select
+                      required
+                      value={addingCategory ? '__add_category__' : draft.category}
+                      onChange={(e) => {
+                        if (e.target.value === '__add_category__') {
+                          setAddingCategory(true)
+                          updateProduct('category', '')
+                        } else {
+                          setAddingCategory(false)
+                          updateProduct('category', e.target.value)
+                        }
+                      }}
+                    >
+                      <option value="" disabled>Choose a category</option>
+                      {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+                      <option value="__add_category__">＋ Add category…</option>
+                    </select>
+                  </label>
                 </div>
+                {addingCategory && <label>New category<input autoFocus required maxLength={60} placeholder="e.g. Sunglasses" value={draft.category} onChange={(e) => updateProduct('category', e.target.value)} /></label>}
                 <label>Description<textarea rows={3} value={draft.description} onChange={(e) => updateProduct('description', e.target.value)} /></label>
-                <label>Sizes <span className="label-hint">comma separated; leave empty for one size</span><input placeholder="S, M, L" value={draft.sizes} onChange={(e) => updateProduct('sizes', e.target.value)} /></label>
-                <label>Colours <span className="label-hint">one per line: name: #hex</span><textarea rows={2} placeholder={'Vintage blue: #435a77'} value={draft.colors} onChange={(e) => updateProduct('colors', e.target.value)} /></label>
+                <fieldset className="size-fieldset">
+                  <legend>Sizes <span className="label-hint">select all that apply</span></legend>
+                  <div className="size-options">
+                    {sizeOptions.map((size) => {
+                      const checked = selectedSizes.some((selected) => selected.toLowerCase() === size.toLowerCase())
+                      return <label className="size-option" key={size}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const nextSizes = checked
+                              ? selectedSizes.filter((selected) => selected.toLowerCase() !== size.toLowerCase())
+                              : [...selectedSizes, size]
+                            updateProduct('sizes', nextSizes.join(', '))
+                          }}
+                        />
+                        <span>{size}</span>
+                      </label>
+                    })}
+                  </div>
+                </fieldset>
+                <fieldset className="product-colors-fieldset">
+                  <legend>Colors <span className="label-hint">choose one or more; add shades separately</span></legend>
+                  <div className="color-preset-list" aria-label="Common colors">
+                    {colorPresets.map((color) => <button
+                      className="color-preset"
+                      key={color.name}
+                      type="button"
+                      title={`Add ${color.name}`}
+                      onClick={() => addProductColor(color)}
+                    >
+                      <span style={{ backgroundColor: color.hex }} />
+                      {color.name}
+                    </button>)}
+                    <button className="button button-quiet add-custom-color" type="button" onClick={() => addProductColor({ name: 'Custom color', hex: '#808080' })}>
+                      + Custom shade
+                    </button>
+                  </div>
+                  {draft.colors.length > 0 ? <div className="product-color-list">
+                    {draft.colors.map((color, index) => <div className="product-color-row" key={index}>
+                      <input
+                        type="color"
+                        aria-label={`Choose shade for ${color.name || `color ${index + 1}`}`}
+                        value={/^#[0-9a-f]{6}$/i.test(color.hex) ? color.hex : '#808080'}
+                        onChange={(event) => updateProductColor(index, { hex: event.target.value })}
+                      />
+                      <input
+                        aria-label={`Color ${index + 1} name`}
+                        placeholder="Name this color or shade"
+                        maxLength={40}
+                        value={color.name}
+                        onChange={(event) => updateProductColor(index, { name: event.target.value })}
+                      />
+                      <button
+                        className="icon-button danger-button"
+                        type="button"
+                        aria-label={`Remove ${color.name || `color ${index + 1}`}`}
+                        onClick={() => setDraft((current) => ({ ...current, colors: current.colors.filter((_, colorIndex) => colorIndex !== index) }))}
+                      ><Trash2 size={15} /></button>
+                    </div>)}
+                  </div> : <p className="color-empty-hint">No colors added. Colors are optional.</p>}
+                </fieldset>
                 <label>Product image URL<input type="url" required placeholder="https://…" value={draft.image_url} onChange={(e) => updateProduct('image_url', e.target.value)} /></label>
                 <label className="upload-button"><ImagePlus size={15} /> Upload product image<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'products')} /></label>
                 {draft.image_url && <img className="admin-image-preview" src={draft.image_url} alt="Product preview" />}
@@ -196,13 +310,29 @@ export default function AdminPanel({ products, settings, onBack, onSaveSettings,
             <form className="admin-card settings-form stack-form" onSubmit={saveSettings}>
               <div className="card-title"><h2>Store identity</h2><Settings2 size={18} /></div>
               <label>Store name<input required value={settingsDraft.store_name} onChange={(e) => updateSetting('store_name', e.target.value)} /></label>
-              <div className="form-row">
-                <label>Accent colour<input type="color" value={settingsDraft.accent_color} onChange={(e) => updateSetting('accent_color', e.target.value)} /></label>
-                <label>Page background<input type="color" value={settingsDraft.background_color} onChange={(e) => updateSetting('background_color', e.target.value)} /></label>
+              <label>Storefront theme<select value={settingsDraft.theme === 'dark' ? 'dark' : 'light'} onChange={(e) => updateSetting('theme', e.target.value === 'dark' ? 'dark' : 'light')}>
+                <option value="light">Red &amp; white — light</option>
+                <option value="dark">Red &amp; black — dark</option>
+              </select></label>
+              <p className="muted theme-help">Choose a ready-made palette with matched text and background colors for comfortable reading.</p>
+              <div className="brand-logo-option">
+                <strong>Logo for light mode</strong>
+                <label>Image URL<input type="url" placeholder="https://…" value={settingsDraft.logo_light_url ?? ''} onChange={(e) => updateSetting('logo_light_url', e.target.value)} /></label>
+                <label className="upload-button"><ImagePlus size={15} /> Upload light logo<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'logo_light_url')} /></label>
+                <div className="brand-logo-preview light">
+                  <img className="brand-image-preview" src={lightLogoUrl} alt="Light mode logo preview" />
+                  <span>{settingsDraft.logo_light_url?.trim() ? 'Custom light logo' : 'Default black logo'}</span>
+                </div>
               </div>
-              <label>Logo image URL<input type="url" placeholder="https://…" value={settingsDraft.logo_url} onChange={(e) => updateSetting('logo_url', e.target.value)} /></label>
-              <label className="upload-button"><ImagePlus size={15} /> Upload logo<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'logo_url')} /></label>
-              {settingsDraft.logo_url && <img className="brand-image-preview" src={settingsDraft.logo_url} alt="Logo preview" />}
+              <div className="brand-logo-option">
+                <strong>Logo for dark mode</strong>
+                <label>Image URL<input type="url" placeholder="https://…" value={settingsDraft.logo_dark_url ?? ''} onChange={(e) => updateSetting('logo_dark_url', e.target.value)} /></label>
+                <label className="upload-button"><ImagePlus size={15} /> Upload dark logo<input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'logo_dark_url')} /></label>
+                <div className="brand-logo-preview dark">
+                  <img className="brand-image-preview" src={darkLogoUrl} alt="Dark mode logo preview" />
+                  <span>{settingsDraft.logo_dark_url?.trim() ? 'Custom dark logo' : 'Default white logo'}</span>
+                </div>
+              </div>
               <label>Favicon URL<input type="url" placeholder="https://…" value={settingsDraft.favicon_url} onChange={(e) => updateSetting('favicon_url', e.target.value)} /></label>
               <label className="upload-button"><ImagePlus size={15} /> Upload favicon<input type="file" accept="image/*,.ico" onChange={(e) => e.target.files?.[0] && void uploadImage(e.target.files[0], 'brand', 'favicon_url')} /></label>
               <label>WhatsApp number <span className="label-hint">country code + number, digits only; India: 91…</span><input inputMode="tel" placeholder="919876543210" value={settingsDraft.whatsapp_number} onChange={(e) => updateSetting('whatsapp_number', e.target.value)} /></label>
