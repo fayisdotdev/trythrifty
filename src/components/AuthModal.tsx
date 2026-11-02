@@ -104,7 +104,7 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
             {mode === 'sign-in' ? 'Create account' : 'Sign in'} <ArrowRight size={15} />
           </button>
         </div>
-        <p className="fine-print">Accounts are securely managed by Supabase Auth.</p>
+        {/* <p className="fine-print">Accounts are securely managed by Supabase Auth.</p> */}
       </section>
     </div>
   )
