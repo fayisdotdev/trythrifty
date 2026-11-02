@@ -4,19 +4,23 @@ import type { Product } from '../types'
 
 type ProductCardProps = {
   product: Product
+  globalBadgeEnabled: boolean
+  globalBadgeText: string
   formatPrice: (value: number) => string
   onAdd: (product: Product, size: string, color: string) => void
 }
 
-export default function ProductCard({ product, formatPrice, onAdd }: ProductCardProps) {
+export default function ProductCard({ product, globalBadgeEnabled, globalBadgeText, formatPrice, onAdd }: ProductCardProps) {
   const [size, setSize] = useState(product.sizes[0] ?? 'One size')
   const [color, setColor] = useState(product.colors[0]?.name ?? 'Default')
+  const badgeText = product.badge_text?.trim() || globalBadgeText
+  const badgeEnabled = globalBadgeEnabled && product.badge_enabled !== false
 
   return (
     <article className="product-card">
       <div className="product-image-wrap">
         <img src={product.image_url} alt={product.name} loading="lazy" />
-        <span className="product-tag">PRE-LOVED FIND</span>
+        {badgeEnabled && badgeText.trim() && <span className="product-tag">{badgeText}</span>}
         <button className="quick-add" onClick={() => onAdd(product, size, color)} aria-label={`Add ${product.name} to bag`}>
           <Plus size={18} />
         </button>

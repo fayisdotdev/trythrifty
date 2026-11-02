@@ -330,7 +330,7 @@ export default function App() {
                 {search && <button className="text-action" onClick={() => setSearch('')}>Clear search <span>↗</span></button>}
               </div>
             </div>
-          ) : <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} formatPrice={formatPrice} onAdd={addToBag} />)}</div>}
+          ) : <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} globalBadgeEnabled={settings.collection_badge_enabled !== false} globalBadgeText={settings.collection_badge_text || 'PRE-LOVED FIND'} formatPrice={formatPrice} onAdd={addToBag} />)}</div>}
         </section>
 
         <section className="story-section" id="story">

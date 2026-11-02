@@ -21,10 +21,12 @@ type ProductForm = {
   image_url: string
   sizes: string
   colors: ProductColor[]
+  badge_enabled: boolean
+  badge_text: string
 }
 
 const emptyProduct: ProductForm = {
-  name: '', description: '', price: '', category: '', image_url: '', sizes: '', colors: [],
+  name: '', description: '', price: '', category: '', image_url: '', sizes: '', colors: [], badge_enabled: true, badge_text: '',
 }
 
 const standardSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'One size']
@@ -52,6 +54,8 @@ function productToForm(product: Product): ProductForm {
     image_url: product.image_url,
     sizes: product.sizes.join(', '),
     colors: product.colors.map(({ name, hex }) => ({ name, hex })),
+    badge_enabled: product.badge_enabled !== false,
+    badge_text: product.badge_text ?? '',
   }
 }
 
@@ -113,6 +117,8 @@ export default function AdminPanel({ products, settings, theme, onBack, onSaveSe
         image_url: draft.image_url.trim(),
         sizes: draft.sizes.split(',').map((size) => size.trim()).filter(Boolean),
         colors,
+        badge_enabled: draft.badge_enabled,
+        badge_text: draft.badge_text.trim(),
         active: true,
       })
       setSuccess(editingId ? 'Product updated.' : 'Product added to the shop.')
@@ -152,7 +158,7 @@ export default function AdminPanel({ products, settings, theme, onBack, onSaveSe
     }
   }
 
-  const updateProduct = (field: Exclude<keyof ProductForm, 'colors'>, value: string) => setDraft((current) => ({ ...current, [field]: value }))
+  const updateProduct = <K extends Exclude<keyof ProductForm, 'colors'>>(field: K, value: ProductForm[K]) => setDraft((current) => ({ ...current, [field]: value }))
   const updateProductColor = (index: number, patch: Partial<ProductColor>) => setDraft((current) => ({
     ...current,
     colors: current.colors.map((color, colorIndex) => colorIndex === index ? { ...color, ...patch } : color),
@@ -218,6 +224,15 @@ export default function AdminPanel({ products, settings, theme, onBack, onSaveSe
                 </div>
                 {addingCategory && <label>New category<input autoFocus required maxLength={60} placeholder="e.g. Sunglasses" value={draft.category} onChange={(e) => updateProduct('category', e.target.value)} /></label>}
                 <label>Description<textarea rows={3} value={draft.description} onChange={(e) => updateProduct('description', e.target.value)} /></label>
+                <div className="product-badge-settings">
+                  <label className="product-badge-toggle">
+                    <input type="checkbox" checked={draft.badge_enabled} onChange={(e) => updateProduct('badge_enabled', e.target.checked)} />
+                    <span>Show floating badge on this product</span>
+                  </label>
+                  <label>Badge text <span className="label-hint">leave blank to use the store default</span>
+                    <input maxLength={40} placeholder={settings.collection_badge_text || 'PRE-LOVED FIND'} value={draft.badge_text} disabled={!draft.badge_enabled} onChange={(e) => updateProduct('badge_text', e.target.value)} />
+                  </label>
+                </div>
                 <fieldset className="size-fieldset">
                   <legend>Sizes <span className="label-hint">select all that apply</span></legend>
                   <div className="size-options">
@@ -376,6 +391,11 @@ export default function AdminPanel({ products, settings, theme, onBack, onSaveSe
                 <label>Multiple items label<input value={settingsDraft.collection_items_label} onChange={(e) => updateSetting('collection_items_label', e.target.value)} /></label>
               </div>
               <label>All categories filter label<input value={settingsDraft.collection_all_label} onChange={(e) => updateSetting('collection_all_label', e.target.value)} /></label>
+              <label className="settings-toggle">
+                <input type="checkbox" checked={settingsDraft.collection_badge_enabled !== false} onChange={(e) => updateSetting('collection_badge_enabled', e.target.checked)} />
+                <span>Show floating product badge</span>
+              </label>
+              <label>Floating badge text<input maxLength={40} placeholder="PRE-LOVED FIND" value={settingsDraft.collection_badge_text ?? ''} disabled={settingsDraft.collection_badge_enabled === false} onChange={(e) => updateSetting('collection_badge_text', e.target.value)} /></label>
               <div className="card-title"><h2>Empty collection messages</h2></div>
               <label>Empty collection label<input value={settingsDraft.empty_collection_eyebrow} onChange={(e) => updateSetting('empty_collection_eyebrow', e.target.value)} /></label>
               <label>Empty collection heading<input value={settingsDraft.empty_collection_title} onChange={(e) => updateSetting('empty_collection_title', e.target.value)} /></label>

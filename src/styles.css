@@ -375,6 +375,13 @@ a { color: inherit; text-decoration: none; }
 .admin-empty p { margin: 0; font-size: 10px; }
 .settings-form { max-width: 720px; gap: 17px !important; }
 .settings-form .button { align-self: start; margin-top: 3px; }
+.settings-form > .settings-toggle { flex-direction: row; align-items: center; gap: 10px; cursor: pointer; }
+.product-badge-settings { display: grid; gap: 10px; }
+.product-badge-toggle { display: flex; align-items: center; gap: 9px; color: #d3d0ca; font-size: 10px; font-weight: 600; cursor: pointer; }
+.product-badge-toggle input { width: 17px; min-height: 17px; padding: 0; accent-color: var(--accent); }
+.product-badge-settings > label:not(.product-badge-toggle) { display: flex; flex-direction: column; gap: 7px; color: #d3d0ca; font-size: 10px; font-weight: 600; }
+.settings-toggle input[type="checkbox"] { width: 17px; min-height: 17px; padding: 0; accent-color: var(--accent); }
+.settings-form > label input:disabled { opacity: .55; cursor: not-allowed; }
 .settings-divider { height: 1px; margin: 3px 0; background: var(--line); }
 .admin-alert { margin: 14px 0 -13px; padding: 10px 12px; border-radius: 6px; font-size: 10px; }
 .admin-alert.error { color: #ffaca0; background: rgba(214,65,48,.1); }
@@ -421,6 +428,10 @@ a { color: inherit; text-decoration: none; }
 .admin-shell[data-store-theme="light"] .stack-form input,
 .admin-shell[data-store-theme="light"] .stack-form textarea,
 .admin-shell[data-store-theme="light"] .stack-form select { color: var(--control-text); background: var(--control); border-color: var(--line); }
+.admin-shell[data-store-theme="light"] .settings-toggle input[type="checkbox"] { background: transparent; }
+.admin-shell[data-store-theme="light"] .product-badge-toggle,
+.admin-shell[data-store-theme="light"] .product-badge-settings > label:not(.product-badge-toggle) { color: var(--text-soft); }
+.admin-shell[data-store-theme="light"] .product-badge-settings > label > input { color: var(--control-text); background: var(--control); border-color: var(--line); }
 .admin-shell[data-store-theme="light"] .upload-button,
 .admin-shell[data-store-theme="light"] .icon-button { color: var(--text-soft); background: var(--surface-raised); border-color: var(--line); }
 .admin-shell[data-store-theme="light"] .button-quiet { color: var(--text); background: var(--surface-raised); border-color: var(--line); }

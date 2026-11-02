@@ -12,6 +12,8 @@ export type Product = {
   image_url: string
   sizes: string[]
   colors: ProductColor[]
+  badge_enabled?: boolean
+  badge_text?: string
   active: boolean
   created_at?: string
 }
@@ -53,6 +55,8 @@ export type StoreSettings = {
   collection_item_label: string
   collection_items_label: string
   collection_all_label: string
+  collection_badge_enabled: boolean
+  collection_badge_text: string
   empty_collection_eyebrow: string
   empty_collection_title: string
   empty_collection_description: string
