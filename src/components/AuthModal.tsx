@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { ArrowRight, LoaderCircle, X } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, LoaderCircle, X } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 
 type AuthModalProps = {
@@ -12,12 +12,14 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordVisible, setPasswordVisible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
   function switchMode() {
     setMode((current) => current === 'sign-in' ? 'sign-up' : 'sign-in')
+    setPasswordVisible(false)
     setError('')
     setMessage('')
   }
@@ -87,7 +89,20 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
         <form className="stack-form" onSubmit={submit}>
           {mode === 'sign-up' && <label>Your name<input type="text" autoComplete="name" maxLength={100} required value={name} onChange={(e) => setName(e.target.value)} /></label>}
           <label>Email address<input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-          <label>Password<input type="password" minLength={6} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+          <label className="password-field">Password
+            <span className="password-input-wrap">
+              <input type={passwordVisible ? 'text' : 'password'} minLength={6} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <button
+                className="password-visibility-toggle"
+                type="button"
+                aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+                aria-pressed={passwordVisible}
+                onClick={() => setPasswordVisible((visible) => !visible)}
+              >
+                {passwordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </span>
+          </label>
           {error && <p className="form-error" role="alert">{error}</p>}
           {message && <p className="form-success" role="status">{message}</p>}
           <button className="button button-primary button-wide" disabled={busy}>
